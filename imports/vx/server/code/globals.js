@@ -1,0 +1,9 @@
+this.Daemon = {}
+this.RecordRemover = {}
+this.RecordImporter = {}
+this.Mailman = {}
+this.Reporter = {}
+this.PkgCloud = {}
+this.Serv = {}
+this.Service = {}
+this.FunctionAnchors = { }
