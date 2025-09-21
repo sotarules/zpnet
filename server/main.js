@@ -14,7 +14,7 @@ import "/imports/vx/both/code/collections"
 //import "/imports/app/both/code/collections"
 
 import "/imports/vx/both/code/codes"
-//import "/imports/app/both/code/codes"
+import "/imports/app/both/code/codes"
 
 import "/imports/vx/both/code/util"
 //import "/imports/app/both/code/util"
@@ -24,7 +24,7 @@ import "/imports/vx/both/code/schemas"
 
 import "/imports/vx/both/code/i18n"
 import "/imports/vx/server/code/i18n"
-//import "/imports/app/both/code/i18n"
+import "/imports/app/both/code/i18n"
 //import "/imports/app/server/code/i18n"
 
 import "/imports/vx/both/code/olog"
@@ -39,7 +39,7 @@ import "/imports/vx/both/code/fx"
 import "/imports/vx/both/code/vxapp"
 import "/imports/vx/server/code/vxapp"
 //import "/imports/app/both/code/vxapp"
-//import "/imports/app/server/code/vxapp"
+import "/imports/app/server/code/vxapp"
 
 import "/imports/vx/both/code/meta"
 //import "/imports/app/both/code/meta"
@@ -66,7 +66,7 @@ import "/imports/vx/server/hooks/hooks"
 //import "/imports/app/server/hooks/hooks"
 
 import "/imports/vx/server/service/service"
-//import "/imports/app/server/service/service"
+import "/imports/app/server/service/service"
 
 import "/imports/vx/server/publications/publications"
 //import "/imports/app/server/publications/publications"

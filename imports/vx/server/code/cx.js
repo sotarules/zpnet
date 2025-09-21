@@ -1,6 +1,4 @@
-"use strict";
-
-CX.DEFAULT_PASSWORD = "vxframe"
+CX.DEFAULT_PASSWORD = "zpnet"
 
 CX.MAILGUN_API = "https://api.mailgun.net/v2"
 

@@ -1,5 +1,5 @@
-CX.SYSTEM_NAME = "VXFrame"
-CX.SYSTEM_URL = "https://app.vxframe.com"
+CX.SYSTEM_NAME = "ZPNet"
+CX.SYSTEM_URL = "https://zpnet.sotaenterprises.com"
 CX.SYSTEM_EMAIL = "admin@sotaenterprises.com"
 CX.MANDATORY_2FA = false
 
