@@ -137,7 +137,9 @@
     "RecordImporter" : true,
     "Meta" : true,
     "S3" : true,
-    "Holder" : true
+    "Holder" : true,
+    "Aggregates" : true,
+    "ZPNetEvents" : true
    },
    "rules": {
 /**

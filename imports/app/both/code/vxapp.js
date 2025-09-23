@@ -1,0 +1,3 @@
+VXApp = _.extend(VXApp || {}, {
+
+})
