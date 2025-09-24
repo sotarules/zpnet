@@ -1,7 +1,9 @@
 import React, {Component} from "react"
 import PropTypes from "prop-types"
 import RightPanel from "/imports/vx/client/RightPanel"
-import RightHeader from "/imports/vx/client/RightHeader"
+import DashboardChartHeader from "./DashboardChartHeader"
+import DashboardChartBatteryStatusHeader from "./DashboardChartBatteryStatusHeader"
+import DashboardChartBatteryStatus from "./DashboardChartBatteryStatus"
 
 export default class DashboardChart extends Component {
 
@@ -15,17 +17,24 @@ export default class DashboardChart extends Component {
         id: "dashboard-chart"
     }
 
+    static componentRegistry = {
+        DashboardChartBatteryStatusHeader : DashboardChartBatteryStatusHeader,
+        DashboardChartBatteryStatus : DashboardChartBatteryStatus
+    }
+
     render() {
         const subscriptionName = this.props.dashboardSettings.subscriptionName
-        const header = CX.DASHBOARD_HEADERS[subscriptionName]
-        const ComponentClass = header.chartComponent
+        const view = CX.DASHBOARD_VIEWS[subscriptionName]
+        const HeaderComponent = DashboardChart.componentRegistry[view.headerComponent]
+        const ChartComponent = DashboardChart.componentRegistry[view.chartComponent]
         return (
             <div id={this.props.id} className="flexi-grow">
                 <RightPanel>
-                    <RightHeader iconUrl={header.iconUrl}
-                        name={Util.i18n(header.name)}
-                        description={Util.i18n(header.description)}/>
-                    <ComponentClass {...this.props} />
+                    <DashboardChartHeader iconUrl={view.iconUrl}
+                        name={Util.i18n(view.name)}
+                        description={Util.i18n(view.description)}
+                        headerComponent={(<HeaderComponent {...this.props} />)} />
+                    <ChartComponent {...this.props} />
                 </RightPanel>
             </div>
         )

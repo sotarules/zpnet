@@ -21,9 +21,11 @@ export default class OffCanvasNav extends Component {
                         onClick={this.onClickCloseMenu.bind(this)}/>
                     <OffCanvasNavItem iconClass="fa-battery"
                         text={Util.i18n("navbar.battery_status")}
+                        path="/dashboard"
                         onClick={this.onClickBatteryStatus.bind(this)}/>
                     <OffCanvasNavItem iconClass="fa-code-fork"
                         text={Util.i18n("navbar.fork_status")}
+                        path="/dashboard"
                         onClick={this.onClickForkStatus.bind(this)}/>
                     <OffCanvasNavItem iconClass="fa-print"
                         text={Util.i18n("navbar.reports")}
@@ -99,13 +101,8 @@ export default class OffCanvasNav extends Component {
     onClickDashboard(event, subscriptionName) {
         OLog.debug(`ux.js onClickDashboard user=${Util.getUserEmail()}`)
         event.persist()
-        event.preventDefault()
         VXApp.setDashboardSettings("subscriptionName", subscriptionName)
-        const delayMilliseconds = 1000
         UX.onClickMenuItem(event)
-        Meteor.setTimeout(() => {
-            UX.go("/dashboard")
-        }, delayMilliseconds)
     }
 
     onClickCloseMenu(event) {

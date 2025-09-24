@@ -1,8 +1,7 @@
 import React, {Component} from "react"
 import PropTypes from "prop-types"
 import {CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis} from "recharts"
-import RightHeader from "../../vx/client/RightHeader"
-import RightBody from "../../vx/client/RightBody"
+import RightBody from "/imports/vx/client/RightBody"
 
 export default class DashboardChartBatteryStatus extends Component {
 
@@ -20,7 +19,7 @@ export default class DashboardChartBatteryStatus extends Component {
         const {aggregates} = this.props
 
         // Safety check
-        if (!aggregates || !aggregates.window) {
+        if (!aggregates || !aggregates.window || aggregates.window.length === 0) {
             return <div>No data available</div>
         }
 
@@ -31,18 +30,39 @@ export default class DashboardChartBatteryStatus extends Component {
                     <LineChart data={data}>
                         <CartesianGrid strokeDasharray="3 3"/>
                         <XAxis
-                            dataKey="minutes"
-                            type="number"
-                            domain={[0, "dataMax"]}
-                            tickFormatter={(m) => m.toFixed(1)}
+                            dataKey="timeLabel"
+                            type="category"
+                            tick={{fontSize: 12}}
                         />
                         <YAxis domain={["auto", "auto"]}/>
-                        <Tooltip labelFormatter={(m) => `${m.toFixed(1)} min`}/>
+                        <Tooltip
+                            labelFormatter={(time) => `Time: ${time}`}
+                            formatter={(value, name) => [Number(value).toFixed(3), name]}
+                        />
+                        <Legend />
                         <Line
                             type="monotone"
-                            dataKey="voltage"
+                            dataKey="batteryVoltage"
                             stroke="#8884d8"
-                            name={aggregates.subscriptionName || "Battery Status"}
+                            strokeWidth={3}
+                            name="Battery Rail"
+                            dot={false}
+                        />
+                        <Line
+                            type="monotone"
+                            dataKey="v3v3Voltage"
+                            stroke="#82ca9d"
+                            strokeWidth={3}
+                            name="3.3V Rail"
+                            dot={false}
+                        />
+                        <Line
+                            type="monotone"
+                            dataKey="v5vVoltage"
+                            stroke="#ff7300"
+                            strokeWidth={3}
+                            name="5V Rail"
+                            dot={false}
                         />
                     </LineChart>
                 </ResponsiveContainer>

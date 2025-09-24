@@ -21,13 +21,13 @@ Meteor.i18nMessages.common = _.extend(Meteor.i18nMessages.common || {}, {
     },
 
     header_battery_status_description : {
-        en : "Real-time battery voltage since last swap",
-        rx : "$Real-time battery voltage since last swap$"
+        en : "Real-time Status",
+        rx : "$Real-time Status$"
     },
 
-    label_tasks : {
-        en : "Tasks",
-        rx : "$Tasks$"
+    label_battery_status_mode : {
+        en : "Mode",
+        rx : "$Mode$"
     },
 
     tab_company_profile : {

@@ -12,5 +12,15 @@ Meteor.i18nMessages.codes = _.extend(Meteor.i18nMessages.codes, {
             notificationDefaults : [ "PNOTIFY" ]
         },
         ...Meteor.i18nMessages.codes.eventType }
+    },
+    batteryStatusMode : {
+        VOLTAGE : {
+            en : "Voltage",
+            rx : "$Voltage$"
+        },
+        CURRENT : {
+            en : "Current",
+            rx : "$Current$"
+        }
     }
 })

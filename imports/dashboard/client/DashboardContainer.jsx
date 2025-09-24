@@ -6,7 +6,7 @@ const MeteorContainer = withTracker(props => {
     const ready = new ReactiveVar(false)
     const subscriptionName = props.dashboardSettings.subscriptionName
     const handles = []
-    handles.push(UX.subscribe(subscriptionName))
+    handles.push(UX.subscribe(subscriptionName, props.dashboardSettings))
     UX.waitSubscriptions(handles, () => {
         ready.set(true)
         UX.clearLoading()
