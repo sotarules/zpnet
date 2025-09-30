@@ -30,6 +30,11 @@ Meteor.i18nMessages.common = _.extend(Meteor.i18nMessages.common || {}, {
         rx : "$Mode$"
     },
 
+    label_battery_swap_index : {
+        en : "Swap Index",
+        rx : "$Swap Index$"
+    },
+
     tab_company_profile : {
         en : "Company<br>Profile",
         rx : "$Company<br>Profile$"

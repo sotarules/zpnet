@@ -21,6 +21,10 @@ Meteor.i18nMessages.codes = _.extend(Meteor.i18nMessages.codes, {
         CURRENT : {
             en : "Current",
             rx : "$Current$"
+        },
+        POWER : {
+            en : "Power",
+            rx : "$Power$"
         }
     }
 })
