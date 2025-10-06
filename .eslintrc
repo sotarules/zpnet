@@ -138,9 +138,10 @@
     "Meta" : true,
     "S3" : true,
     "Holder" : true,
-    "Aggregates" : true,
-    "ZPNetEvents" : true
-   },
+    "ZPNetEvents" : true,
+    "ZPNetCommands" : true,
+    "Aggregates" : true
+  },
    "rules": {
 /**
  * Strict mode

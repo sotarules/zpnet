@@ -4,31 +4,93 @@ VXApp = _.extend(VXApp || {}, {
      * Handle REST API request.
      *
      * @param {object} req HTTP request object.
+     * @param {object} res HTTP response object.
      */
-    handleRESTAPIRequest(req) {
+    handleRESTAPIRequest(req, res) {
         try {
-            OLog.debug(`vxapp.js handleRESTAPIRequest() ${req.method} ${OLog.debugString(req.body)}`)
-            if (!req.body) {
-                OLog.error("vxapp.js handleRESTAPIRequest Request contains no body")
-                return
+            OLog.debug(`vxapp.js handleRESTAPIRequest() ${req.method}`)
+            switch (req.method) {
+            case "POST":
+                this.handlePost(req, res)
+                break;
+            case "GET":
+                this.handleGet(req, res)
+                break;
+            default:
+                OLog.warn(`vxapp.js handleRESTAPIRequest Unsupported method: ${req.method}`)
+                res.writeHead(405, {"Content-Type": "text/plain"})
+                res.end("Method Not Allowed")
+                break;
             }
-            if (!_.isArray(req.body)) {
-                OLog.error("vxapp.js handleRESTAPIRequest Request body must be of type array")
-                return
-            }
-            //const domain = Domains.findOne({ name: "ZPNet Production" })
-            req.body.forEach(event => {
-                const zpnetEvent = {}
-                zpnetEvent.id = event.id
-                zpnetEvent.timestamp = moment(`${event.timestamp}Z`).toDate()
-                zpnetEvent.event_type = event.event_type
-                zpnetEvent.device = event.device
-                zpnetEvent.device_description = event.device_description
-                zpnetEvent.payload = Util.parseJSON(event.payload)
-                ZPNetEvents.insert(zpnetEvent)
-            })
         } catch (error) {
             OLog.error(`vxapp.js handleRESTAPIRequest Error: ${error.message}`)
+            res.writeHead(500, {"Content-Type": "text/plain"})
+            res.end("Internal Server Error")
+        }
+    },
+
+    /**
+     * Handle POST from ZPNet (array of events).
+     */
+    handlePost(req, res) {
+        try {
+            OLog.debug(`vxapp.js handlePost() ${OLog.debugString(req.body)}`)
+            if (!req.body) {
+                OLog.error("vxapp.js handlePost Request contains no body")
+                res.writeHead(400);
+                return res.end("Missing request body");
+            }
+            if (!Array.isArray(req.body)) {
+                OLog.error("vxapp.js handlePost Request body must be of type array")
+                res.writeHead(400);
+                return res.end("Body must be array")
+            }
+            req.body.forEach(event => {
+                const zpnetEvent = {
+                    id: event.id,
+                    timestamp: moment(`${event.timestamp}Z`).toDate(),
+                    event_type: event.event_type,
+                    device: event.device,
+                    device_description: event.device_description,
+                    payload: Util.parseJSON(event.payload)
+                }
+                ZPNetEvents.insert(zpnetEvent)
+            })
+            res.writeHead(200, {"Content-Type": "text/plain"})
+            res.end("POST received")
+        }
+        catch (error) {
+            OLog.error(`vxapp.js handlePost Error: ${error.message}`)
+            res.writeHead(500);
+            res.end("Error processing POST")
+        }
+    },
+
+    /**
+     * Handle GET from ZPNet (return pending commands).
+     *
+     * @param {object} req HTTP request object.
+     * @param {object} res HTTP response object.
+     */
+    handleGet(req, res) {
+        try {
+            OLog.debug(`vxapp.js handleGet() ${req.url}`)
+            const selector = {}
+            selector.despooled = { $exists: false }
+            const pendingCommands = ZPNetCommands.find(selector).fetch()
+            res.writeHead(200, {"Content-Type": "application/json"})
+            res.end(JSON.stringify(pendingCommands))
+            pendingCommands.forEach(command => {
+                const modifier = {}
+                modifier.$set = {}
+                modifier.$set.despooled = new Date()
+                ZPNetCommands.update(command._id, modifier)
+            })
+        }
+        catch (error) {
+            OLog.error(`vxapp.js handleGet Error: ${error.message}`)
+            res.writeHead(500)
+            res.end("Error processing GET")
         }
     },
 
@@ -42,15 +104,15 @@ VXApp = _.extend(VXApp || {}, {
      */
     handlePublishAggregate(dashboardSettings, funktion, publicationContext, intervalMs) {
         try {
-            const subscriptionName = dashboardSettings.subscriptionName
-            OLog.warn(`vxapp.js handlePublishAggregate ${subscriptionName} *subscribe*`)
+            const aggregateName = dashboardSettings.aggregateName
+            OLog.warn(`vxapp.js handlePublishAggregate ${aggregateName} *subscribe*`)
             const intervalHandle = VXApp.startAggregator(dashboardSettings, funktion, intervalMs)
             publicationContext.onStop(() => {
-                OLog.warn(`vxapp.js handlePublishAggregate ${subscriptionName} onStop *init*`)
+                OLog.warn(`vxapp.js handlePublishAggregate ${aggregateName} onStop *init*`)
                 VXApp.stopAggregator(dashboardSettings, intervalHandle)
             })
-            OLog.warn(`vxapp.js handlePublishAggregate ${subscriptionName} returning cursor`)
-            return Aggregates.find({subscriptionName})
+            OLog.warn(`vxapp.js handlePublishAggregate ${aggregateName} returning cursor`)
+            return Aggregates.find({aggregate_name: aggregateName})
         } catch (error) {
             OLog.error(`vxapp.js handlePublishAggregate Error: ${error.message}`)
         }
@@ -65,12 +127,12 @@ VXApp = _.extend(VXApp || {}, {
      * @return {object} Interval handle.
      */
     startAggregator(dashboardSettings, funktion, intervalMs) {
-        const subscriptionName = dashboardSettings.subscriptionName
+        const aggregateName = dashboardSettings.aggregateName
         funktion(dashboardSettings)
         const intervalHandle = Meteor.setInterval(() => {
             funktion(dashboardSettings)
         }, intervalMs)
-        OLog.warn(`vxapp.js startAggregator ${subscriptionName} *start* intervalMs=${intervalMs}`)
+        OLog.warn(`vxapp.js startAggregator ${aggregateName} *start* intervalMs=${intervalMs}`)
         return intervalHandle
     },
 
@@ -81,42 +143,58 @@ VXApp = _.extend(VXApp || {}, {
      * @param {object} intervalHandle Interval handle.
      */
     stopAggregator(dashboardSettings, intervalHandle) {
-        const subscriptionName = dashboardSettings.subscriptionName
+        const aggregateName = dashboardSettings.aggregateName
         Meteor.clearInterval(intervalHandle)
-        OLog.warn(`vxapp.js stopAggregator ${subscriptionName} *stop*`)
+        OLog.warn(`vxapp.js stopAggregator ${aggregateName} *stop*`)
     },
 
     /**
      * Aggregate rail voltages/currents/power for real-time analysis.
-     * Walk backwards from now until a discontinuity (voltage spike) is detected.
-     * Downsample along the way to keep payload small. Store the resulting curve
-     * in Aggregates under the subscription name. Note: now you can supply
-     * batterySwapIndex in dashboardSettings to go back in time
-     * (1 = last swap 2 = earlier swap, etc).
+     * Uses the most recent SWAP_BATTERY event (or Nth most recent if
+     * batterySwapIndex > 0) to delimit the window of interest.
+     * Only POWER_STATUS events occurring after that timestamp are considered.
+     * Downsamples the result to keep payload small, and stores the resulting
+     * curve in the Aggregates collection under the name "BATTERY_STATUS".
      *
      * @param {object} dashboardSettings Dashboard settings object.
      */
     aggregateBatteryStatus(dashboardSettings) {
         try {
-            OLog.warn(`vxapp.js aggregateBatteryStatus *fire* dashboardSettings=${OLog.debugString(dashboardSettings)}`)
-            const subscriptionName = dashboardSettings.subscriptionName
+            OLog.warn("vxapp.js aggregateBatteryStatus *fire* " +
+             `dashboardSettings=${OLog.debugString(dashboardSettings)}`)
+
             const now = new Date()
-            const selector = {event_type: "POWER_STATUS"}
-            const options = {sort: {timestamp: -1}} // newest → oldest
+            const DOWNSAMPLE_STEP = 10
+            const batterySwapIndex = dashboardSettings.batterySwapIndex || 0
+
+            // --- Step 1: Find the Nth most recent SWAP_BATTERY event ---
+            const swapCursor = ZPNetEvents.find(
+                { event_type: "SWAP_BATTERY" },
+                { sort: { timestamp: -1 }, skip: batterySwapIndex, limit: 1 }
+            )
+            const swapEvent = swapCursor.fetch()[0]
+
+            if (!swapEvent) {
+                OLog.warn("vxapp.js aggregateBatteryStatus No SWAP_BATTERY event " +
+                 `found (batterySwapIndex=${batterySwapIndex})`)
+                return
+            }
+
+            const swapTime = swapEvent.timestamp
+            OLog.warn(`vxapp.js aggregateBatteryStatus Using SWAP_BATTERY at ${swapTime.toISOString()}`)
+
+            // --- Step 2: Collect POWER_STATUS events since that swap ---
+            const selector = {
+                event_type: "POWER_STATUS",
+                timestamp: { $gte: swapTime }
+            }
+            const options = { sort: { timestamp: 1 } } // oldest → newest
             const cursor = ZPNetEvents.find(selector, options)
 
-            const VOLTAGE_RESET_THRESHOLD = 0.5  // a real swap is a big snap
-            const DOWNSAMPLE_STEP = 10
-
             const samples = []
-            let lastBatteryVoltage = null
-            let stop = false
             let i = 0
-            let batterySwapIndex = dashboardSettings.batterySwapIndex
 
             cursor.forEach(e => {
-                if (stop) return
-
                 const sensors = e.payload?.sensors
                 if (!sensors || sensors.length < 3) return
 
@@ -132,20 +210,12 @@ VXApp = _.extend(VXApp || {}, {
                 const v5vCurrent = sensors[2]?.current
                 const v5vPower = sensors[2]?.power
 
-                if (batteryVoltage == null || v3v3Voltage == null || v5vVoltage == null) return
-
-                if (lastBatteryVoltage !== null) {
-                    const dv = Math.abs(batteryVoltage - lastBatteryVoltage)
-                    if (dv > VOLTAGE_RESET_THRESHOLD) {
-                        OLog.warn(`vxapp.js aggregateBatteryStatus ${subscriptionName} detected voltage *reset*` +
-                            ` batteryVoltage=${batteryVoltage.toFixed(3)}V lastBatteryVoltage=${lastBatteryVoltage.toFixed(3)}V` +
-                            ` deltaV=${dv.toFixed(3)} batterySwapIndex=${batterySwapIndex}`)
-                        if (batterySwapIndex === 0) {
-                            stop = true
-                            return
-                        }
-                        batterySwapIndex--
-                    }
+                if (
+                    batteryVoltage == null ||
+                    v3v3Voltage == null ||
+                    v5vVoltage == null
+                ) {
+                    return
                 }
 
                 if (i % DOWNSAMPLE_STEP === 0) {
@@ -157,7 +227,7 @@ VXApp = _.extend(VXApp || {}, {
                         timeZone: "America/Los_Angeles"
                     })
 
-                    samples.unshift({
+                    samples.push({
                         ts: ts.getTime(),
                         timeLabel,
                         batteryVoltage,
@@ -171,14 +241,12 @@ VXApp = _.extend(VXApp || {}, {
                         v5vPower
                     })
                 }
-
-                lastBatteryVoltage = batteryVoltage
                 i++
             })
 
-            OLog.warn(`vxapp.js aggregateBatteryStatus ${subscriptionName} raw.length=${samples.length}`)
+            OLog.warn(`vxapp.js aggregateBatteryStatus samples.length=${samples.length}`)
 
-            const window = samples.map(p => ({
+            const payload = samples.map(p => ({
                 timeLabel: p.timeLabel,
                 batteryVoltage: p.batteryVoltage,
                 batteryCurrent: p.batteryCurrent,
@@ -192,16 +260,19 @@ VXApp = _.extend(VXApp || {}, {
             }))
 
             const aggregate = {
-                subscriptionName,
                 timestamp: now,
-                window
+                swapTime: swapTime,
+                sampleCount: samples.length,
+                batterySwapIndex,
+                payload
             }
 
             Aggregates.upsert(
-                {subscriptionName},
-                {$set: aggregate}
+                { aggregate_name: "BATTERY_STATUS"},
+                { $set: aggregate }
             )
-        } catch (error) {
+        }
+        catch (error) {
             OLog.error(`vxapp.js aggregateBatteryStatus Error: ${error.message}`)
         }
     }

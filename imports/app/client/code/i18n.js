@@ -10,6 +10,11 @@ Meteor.i18nMessages.common = _.extend(Meteor.i18nMessages.common || {}, {
         rx : "$Dashboard$"
     },
 
+    button_swap_battery : {
+        en : "Swap Battery",
+        rx : "$Swap Battery$"
+    },
+
     context_menu_cut : {
         en : "Cut",
         rx : "$Cut$"

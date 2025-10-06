@@ -17,11 +17,11 @@ export default class DashboardChartBatteryStatus extends Component {
 
     render() {
         const {aggregates, dashboardSettings} = this.props
-        if (!aggregates || !aggregates.window || aggregates.window.length === 0) {
+        if (!aggregates || !aggregates.payload || aggregates.payload.length === 0) {
             return <div>No data available</div>
         }
 
-        const data = aggregates.window
+        const data = aggregates.payload
         const mode = dashboardSettings.batteryStatusMode || "VOLTAGE"
 
         let keys

@@ -91,16 +91,17 @@ export default class OffCanvasNav extends Component {
     }
 
     onClickBatteryStatus(event) {
-        this.onClickDashboard(event, "battery_status")
+        this.onClickDashboard(event, "BATTERY_STATUS", "battery_status")
     }
 
     onClickForkStatus(event) {
-        this.onClickDashboard(event, "fork_status")
+        this.onClickDashboard(event, "FORK_STATUS", "fork_status")
     }
 
-    onClickDashboard(event, subscriptionName) {
+    onClickDashboard(event, aggregateName, subscriptionName) {
         OLog.debug(`ux.js onClickDashboard user=${Util.getUserEmail()}`)
         event.persist()
+        VXApp.setDashboardSettings("aggregateName", aggregateName)
         VXApp.setDashboardSettings("subscriptionName", subscriptionName)
         UX.onClickMenuItem(event)
     }

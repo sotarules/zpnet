@@ -3,6 +3,7 @@ import PropTypes from "prop-types"
 import VXForm from "/imports/vx/client/VXForm"
 import VXSelect from "/imports/vx/client/VXSelect"
 import VXSpin from "/imports/vx/client/VXSpin"
+import VXButton from "../../vx/client/VXButton"
 
 export default class DashboardChartBatteryStatusHeader extends Component {
 
@@ -53,6 +54,13 @@ export default class DashboardChartBatteryStatusHeader extends Component {
                         dbName="batterySwapIndex"
                         onChange={this.handleChangeControl.bind(this)}/>
                 </div>
+                <div className="col-sm-2">
+                    <VXButton id={`${this.props.id}-swap-battery`}
+                        className="btn btn-primary btn-chart-header"
+                        onClick={this.handleClickSwapBattery.bind(this)}>
+                        {Util.i18n("common.button_swap_battery")}
+                    </VXButton>
+                </div>
             </div>
         )
     }
@@ -60,5 +68,15 @@ export default class DashboardChartBatteryStatusHeader extends Component {
     handleChangeControl(event, value, component) {
         console.log(`DashboardChartBatteryStatusHeader handleChangeControl dbName=${component.props.dbName} value=${value}`)
         VXApp.setDashboardSettings(component.props.dbName, value)
+    }
+
+    handleClickSwapBattery(callback) {
+        const payload = {}
+        payload.funktion = "createEvent"
+        payload.args = {}
+        payload.args.eventName = "SWAP_BATTERY"
+        payload.args.payload = {}
+        VXApp.createCommand("EXECUTE_FUNCTION", payload)
+        callback(true)
     }
 }

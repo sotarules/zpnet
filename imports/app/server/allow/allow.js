@@ -1,13 +1,36 @@
 ZPNetEvents.allow({
-    insert(userId, doc) {
+    insert() {
         return true
     },
-    update(userId, doc) {
+    update() {
         return true
     },
-    remove(userId) {
+    remove() {
         return true
     },
-    fetch: ["domain"]
+})
+
+Aggregates.allow({
+    insert() {
+        return true
+    },
+    update() {
+        return true
+    },
+    remove() {
+        return true
+    },
+})
+
+ZPNetCommands.allow({
+    insert() {
+        return true
+    },
+    update() {
+        return true
+    },
+    remove() {
+        return true
+    },
 })
 
