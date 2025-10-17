@@ -64,6 +64,10 @@ Meteor.i18nMessages.navbar = _.extend(Meteor.i18nMessages.navbar || {}, {
     fork_status : {
         en: "Fork Status",
         rx: "$Fork Status$"
+    },
+    zpnet_events : {
+        en: "ZPNet Events",
+        rx: "$ZPNet Events$"
     }
 })
 

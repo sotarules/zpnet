@@ -1,6 +1,6 @@
 import allReducersApp from "/imports/app/client/code/reducers/allReducers"
 import allReducersVx from "/imports/vx/client/code/reducers/allReducers"
-import { setDashboardSettings } from "/imports/app/client/code/actions"
+import {setDashboardSettings, setZPNetEventsSettings} from "/imports/app/client/code/actions"
 
 VXApp = _.extend(VXApp || {}, {
 
@@ -17,7 +17,7 @@ VXApp = _.extend(VXApp || {}, {
     },
 
     isAppAuthorizedRoute(meteorUserId) {
-        const userRoutes = ["dashboard"]
+        const userRoutes = ["dashboard", "zpnetevents"]
         if (Util.isRoutePath(userRoutes)) {
             return !!meteorUserId
         }
@@ -46,6 +46,22 @@ VXApp = _.extend(VXApp || {}, {
         return {
             subscriptionName: null,
             batteryStatusMode: "VOLTAGE"
+        }
+    },
+
+    getZPNetEventsSettings(propertyName) {
+        const zpnetEventsSettings = Store.getState().zpnetEventsSettings
+        return zpnetEventsSettings[propertyName]
+    },
+
+    setZPNetEventsSettings(propertyName, value) {
+        const zpnetEventsSettings = Store.getState().zpnetEventsSettings
+        Store.dispatch(setZPNetEventsSettings( { ...zpnetEventsSettings, ...{ [propertyName] : value } } ))
+    },
+
+    zpnetEventsSettingsDefaults() {
+        return {
+
         }
     }
 })

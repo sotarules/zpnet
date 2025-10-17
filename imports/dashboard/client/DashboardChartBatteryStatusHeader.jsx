@@ -74,7 +74,7 @@ export default class DashboardChartBatteryStatusHeader extends Component {
         const payload = {}
         payload.funktion = "createEvent"
         payload.args = {}
-        payload.args.eventName = "SWAP_BATTERY"
+        payload.args.event_name = "SWAP_BATTERY"
         payload.args.payload = {}
         VXApp.createCommand("EXECUTE_FUNCTION", payload)
         callback(true)

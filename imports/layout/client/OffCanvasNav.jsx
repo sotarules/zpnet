@@ -27,6 +27,9 @@ export default class OffCanvasNav extends Component {
                         text={Util.i18n("navbar.fork_status")}
                         path="/dashboard"
                         onClick={this.onClickForkStatus.bind(this)}/>
+                    <OffCanvasNavItem iconClass="fa-history"
+                        text={Util.i18n("navbar.zpnet_events")}
+                        path="/zpnetevents"/>
                     <OffCanvasNavItem iconClass="fa-print"
                         text={Util.i18n("navbar.reports")}
                         path="/reports"/>

@@ -211,7 +211,7 @@ VXApp = { ...VXApp, ...{
             publishAdjusted.criteria = { ...publishAdjusted.criteria, ...criteria }
         }
         if (regexFilter) {
-            const cleanSearchPhrase = regexFilter.searchPhrase.replace(/[^a-zA-Z0-9 ]/g, "")
+            const cleanSearchPhrase = regexFilter.searchPhrase.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
             const searchRegex = new RegExp(cleanSearchPhrase, "i")
             publishAdjusted.criteria.$or = []
             regexFilter.propertyNames.forEach(propertyName => {

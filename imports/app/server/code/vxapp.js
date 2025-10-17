@@ -1,6 +1,25 @@
 VXApp = _.extend(VXApp || {}, {
 
     /**
+     * Handle REST API test..
+     *
+     * @param {object} req HTTP request object.
+     * @param {object} res HTTP response object.
+     */
+    handleRESTAPITest(req, res) {
+        try {
+            const body = { message: "ZPNet OK" }
+            res.writeHead(200, {"Content-Type": "application/json"})
+            res.end(JSON.stringify(body))
+        }
+        catch (error) {
+            OLog.error(`vxapp.js handleRESTAPITest Error: ${error.message}`)
+            res.writeHead(500, {"Content-Type": "text/plain"})
+            res.end("Internal Server Error")
+        }
+    },
+
+    /**
      * Handle REST API request.
      *
      * @param {object} req HTTP request object.
@@ -8,7 +27,6 @@ VXApp = _.extend(VXApp || {}, {
      */
     handleRESTAPIRequest(req, res) {
         try {
-            OLog.debug(`vxapp.js handleRESTAPIRequest() ${req.method}`)
             switch (req.method) {
             case "POST":
                 this.handlePost(req, res)
@@ -22,7 +40,8 @@ VXApp = _.extend(VXApp || {}, {
                 res.end("Method Not Allowed")
                 break;
             }
-        } catch (error) {
+        }
+        catch (error) {
             OLog.error(`vxapp.js handleRESTAPIRequest Error: ${error.message}`)
             res.writeHead(500, {"Content-Type": "text/plain"})
             res.end("Internal Server Error")
@@ -33,8 +52,8 @@ VXApp = _.extend(VXApp || {}, {
      * Handle POST from ZPNet (array of events).
      */
     handlePost(req, res) {
+        OLog.debug(`vxapp.js handlePost Received POST with body: ${OLog.debugString(req.body)}`)
         try {
-            OLog.debug(`vxapp.js handlePost() ${OLog.debugString(req.body)}`)
             if (!req.body) {
                 OLog.error("vxapp.js handlePost Request contains no body")
                 res.writeHead(400);
@@ -48,7 +67,7 @@ VXApp = _.extend(VXApp || {}, {
             req.body.forEach(event => {
                 const zpnetEvent = {
                     id: event.id,
-                    timestamp: moment(`${event.timestamp}Z`).toDate(),
+                    timestamp: moment(`${event.timestamp}`).toDate(),
                     event_type: event.event_type,
                     device: event.device,
                     device_description: event.device_description,
@@ -74,7 +93,6 @@ VXApp = _.extend(VXApp || {}, {
      */
     handleGet(req, res) {
         try {
-            OLog.debug(`vxapp.js handleGet() ${req.url}`)
             const selector = {}
             selector.despooled = { $exists: false }
             const pendingCommands = ZPNetCommands.find(selector).fetch()
