@@ -216,17 +216,17 @@ VXApp = _.extend(VXApp || {}, {
                 const sensors = e.payload?.sensors
                 if (!sensors || sensors.length < 3) return
 
-                const batteryVoltage = sensors[0]?.voltage
-                const batteryCurrent = sensors[0]?.current
-                const batteryPower = sensors[0]?.power
+                const batteryVoltage = sensors[0]?.voltage_v
+                const batteryCurrent = sensors[0]?.current_ma
+                const batteryPower   = sensors[0]?.power_w
 
-                const v3v3Voltage = sensors[1]?.voltage
-                const v3v3Current = sensors[1]?.current
-                const v3v3Power = sensors[1]?.power
+                const v3v3Voltage = sensors[1]?.voltage_v
+                const v3v3Current = sensors[1]?.current_ma
+                const v3v3Power   = sensors[1]?.power_w
 
-                const v5vVoltage = sensors[2]?.voltage
-                const v5vCurrent = sensors[2]?.current
-                const v5vPower = sensors[2]?.power
+                const v5vVoltage = sensors[2]?.voltage_v
+                const v5vCurrent = sensors[2]?.current_ma
+                const v5vPower   = sensors[2]?.power_w
 
                 if (
                     batteryVoltage == null ||
