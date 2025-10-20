@@ -63,5 +63,31 @@ VXApp = _.extend(VXApp || {}, {
         return {
 
         }
+    },
+
+    clearTerminal(element) {
+        if (!element) return
+        element.textContent = ""
+    },
+
+    initTerminalTyping(element, text, speed = 2) {
+        if (!element) return null
+        element.textContent = ""
+        let i = 0
+        const timer = setInterval(() => {
+            if (!element || i >= text.length) {
+                clearInterval(timer)
+                return
+            }
+            element.textContent += text[i]
+            i++
+        }, speed)
+        return timer
+    },
+
+    clearTerminalTyping(timer) {
+        if (timer) {
+            clearInterval(timer)
+        }
     }
 })

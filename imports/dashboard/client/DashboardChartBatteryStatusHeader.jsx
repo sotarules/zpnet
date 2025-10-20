@@ -3,7 +3,7 @@ import PropTypes from "prop-types"
 import VXForm from "/imports/vx/client/VXForm"
 import VXSelect from "/imports/vx/client/VXSelect"
 import VXSpin from "/imports/vx/client/VXSpin"
-import VXButton from "../../vx/client/VXButton"
+import VXButton from "/imports/vx/client/VXButton"
 
 export default class DashboardChartBatteryStatusHeader extends Component {
 

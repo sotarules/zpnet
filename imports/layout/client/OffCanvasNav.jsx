@@ -19,6 +19,10 @@ export default class OffCanvasNav extends Component {
                     <OffCanvasNavItem iconClass="fa-times"
                         text={Util.i18n("navbar.close_menu")}
                         onClick={this.onClickCloseMenu.bind(this)}/>
+                    <OffCanvasNavItem iconClass="fa-television"
+                        text={Util.i18n("navbar.dashboard_readout")}
+                        path="/dashboard"
+                        onClick={this.onClickDashboard.bind(this)}/>
                     <OffCanvasNavItem iconClass="fa-battery"
                         text={Util.i18n("navbar.battery_status")}
                         path="/dashboard"
@@ -93,16 +97,20 @@ export default class OffCanvasNav extends Component {
         }
     }
 
+    onClickDashboard(event) {
+        this.onClickCommon(event, "DASHBOARD_READOUT", "dashboard_readout")
+    }
+
     onClickBatteryStatus(event) {
-        this.onClickDashboard(event, "BATTERY_STATUS", "battery_status")
+        this.onClickCommon(event, "BATTERY_STATUS", "battery_status")
     }
 
     onClickForkStatus(event) {
-        this.onClickDashboard(event, "FORK_STATUS", "fork_status")
+        this.onClickCommon(event, "FORK_STATUS", "fork_status")
     }
 
-    onClickDashboard(event, aggregateName, subscriptionName) {
-        OLog.debug(`ux.js onClickDashboard user=${Util.getUserEmail()}`)
+    onClickCommon(event, aggregateName, subscriptionName) {
+        OLog.debug(`ux.js onClickCommon user=${Util.getUserEmail()}`)
         event.persist()
         VXApp.setDashboardSettings("aggregateName", aggregateName)
         VXApp.setDashboardSettings("subscriptionName", subscriptionName)

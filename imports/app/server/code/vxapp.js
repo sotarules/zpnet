@@ -131,7 +131,8 @@ VXApp = _.extend(VXApp || {}, {
             })
             OLog.warn(`vxapp.js handlePublishAggregate ${aggregateName} returning cursor`)
             return Aggregates.find({aggregate_name: aggregateName})
-        } catch (error) {
+        }
+        catch (error) {
             OLog.error(`vxapp.js handlePublishAggregate Error: ${error.message}`)
         }
     },
@@ -292,6 +293,58 @@ VXApp = _.extend(VXApp || {}, {
         }
         catch (error) {
             OLog.error(`vxapp.js aggregateBatteryStatus Error: ${error.message}`)
+        }
+    },
+
+    /**
+     * Aggregate the most recent DASHBOARD_READOUT event for remote display.
+     *
+     * This is a singleton aggregate: it simply finds the latest DASHBOARD_READOUT
+     * event in ZPNetEvents and mirrors its payload into the Aggregates collection
+     * under the name "DASHBOARD_READOUT".
+     *
+     * @param {object} dashboardSettings Dashboard settings object.
+     */
+    aggregateDashboardReadout(dashboardSettings) {
+        try {
+            OLog.warn("vxapp.js aggregateDashboardReadout *fire* " +
+                `dashboardSettings=${OLog.debugString(dashboardSettings)}`)
+
+            const now = new Date()
+
+            // --- Step 1: Get most recent DASHBOARD_READOUT event ---
+            const cursor = ZPNetEvents.find(
+                { event_type: "DASHBOARD_READOUT" },
+                { sort: { timestamp: -1 }, limit: 1 }
+            )
+
+            const event = cursor.fetch()[0]
+
+            if (!event) {
+                OLog.warn("vxapp.js aggregateDashboardReadout No DASHBOARD_READOUT event found")
+                return
+            }
+
+            // --- Step 2: Build aggregate payload ---
+            const payload = event.payload || {}
+
+            const aggregate = {
+                timestamp: now,
+                eventTimestamp: event.timestamp,
+                payload
+            }
+
+            // --- Step 3: Upsert into Aggregates collection ---
+            Aggregates.upsert(
+                { aggregate_name: "DASHBOARD_READOUT" },
+                { $set: aggregate }
+            )
+
+            OLog.warn("vxapp.js aggregateDashboardReadout upsert complete " +
+                `(eventTimestamp=${event.timestamp.toISOString()})`)
+        }
+        catch (error) {
+            OLog.error(`vxapp.js aggregateDashboardReadout Error: ${error.message}`)
         }
     }
 })
