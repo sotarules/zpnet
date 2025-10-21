@@ -28,52 +28,24 @@
 }
 
 .dashboard-readout-container {
-    width: 100%;
-    height: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    padding-top: 20px;
 }
 
 .dashboard-readout-screen {
-    background-color: #000;             /* full black surface */
-    width: 100%;
-    max-width: 1000px;
-    aspect-ratio: 800 / 480;            /* match Pi display proportions */
-    border-radius: 12px;
-    padding: 24px;
+    background-color: #000;
     font-family: "IBM 3270", monospace;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
-    box-shadow: inset 0 0 12px rgba(0, 255, 0, 0.1); /* soft CRT glow */
-}
-
-/* reset pre default margins/background */
-.dashboard-readout-screen pre {
-    background: transparent;            /* transparent over black parent */
-    margin: 0;
-    padding: 0;
-    border: none;
+    white-space: pre-wrap;
 }
 
 .dashboard-readout-header {
     color: #ffffff;
     font-size: 18px;
-    line-height: 1.4;
-    white-space: pre-wrap;
-    margin-bottom: 20px;                /* space between header and body */
-    flex: 0 0 auto;
+    padding-bottom: 18px;
 }
 
 .dashboard-readout-body {
-    background-color: transparent;      /* ensure no white patch */
     color: #00ff00;
-    font-size: 17px;
-    line-height: 1.5;
-    white-space: pre-wrap;
-    overflow: hidden;
-    flex: 1 1 auto;
-    padding-left: 4px;
+    font-size: 18px;
 }
+
 

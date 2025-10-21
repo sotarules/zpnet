@@ -1,7 +1,7 @@
 Meteor.publish("dashboard_readout", function(dashboardSettings) {
     try {
         OLog.warn(`publications.js dashboard_readout *start* dashboardSettings=${OLog.warnString(dashboardSettings)}`, this.userId)
-        const cursor = VXApp.handlePublishAggregate(dashboardSettings, VXApp.aggregateDashboardReadout, this, 10000)
+        const cursor = VXApp.handlePublishAggregate(dashboardSettings, VXApp.aggregateDashboardReadout, this, 5000)
         OLog.warn(`publications.js dashboard_readout count=${cursor.count()}`, this.userId)
         return cursor
     }

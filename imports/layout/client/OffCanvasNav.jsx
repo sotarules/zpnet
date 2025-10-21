@@ -21,8 +21,7 @@ export default class OffCanvasNav extends Component {
                         onClick={this.onClickCloseMenu.bind(this)}/>
                     <OffCanvasNavItem iconClass="fa-television"
                         text={Util.i18n("navbar.dashboard_readout")}
-                        path="/dashboard"
-                        onClick={this.onClickDashboard.bind(this)}/>
+                        path="/readout"/>
                     <OffCanvasNavItem iconClass="fa-battery"
                         text={Util.i18n("navbar.battery_status")}
                         path="/dashboard"

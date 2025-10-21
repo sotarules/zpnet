@@ -17,7 +17,7 @@ VXApp = _.extend(VXApp || {}, {
     },
 
     isAppAuthorizedRoute(meteorUserId) {
-        const userRoutes = ["dashboard", "zpnetevents"]
+        const userRoutes = ["readout", "dashboard", "zpnetevents"]
         if (Util.isRoutePath(userRoutes)) {
             return !!meteorUserId
         }
