@@ -20,6 +20,25 @@ VXApp = _.extend(VXApp || {}, {
     },
 
     /**
+     * Handle REST API upload test.
+     *
+     * @param {object} req HTTP request object.
+     * @param {object} res HTTP response object.
+     */
+    handleRESTAPIUploadTest(req, res) {
+        try {
+            const body = { message: "ZPNet Upload OK" }
+            res.writeHead(200, {"Content-Type": "application/json"})
+            res.end(JSON.stringify(body))
+        }
+        catch (error) {
+            OLog.error(`vxapp.js handleRESTAPIUploadTest Error: ${error.message}`)
+            res.writeHead(500, {"Content-Type": "text/plain"})
+            res.end("Internal Server Error")
+        }
+    },
+
+    /**
      * Handle REST API request.
      *
      * @param {object} req HTTP request object.
@@ -175,12 +194,14 @@ VXApp = _.extend(VXApp || {}, {
      * Downsamples the result to keep payload small, and stores the resulting
      * curve in the Aggregates collection under the name "BATTERY_STATUS".
      *
+     * X-axis labels are expressed as elapsed time (HH:MM) since SWAP_BATTERY.
+     *
      * @param {object} dashboardSettings Dashboard settings object.
      */
     aggregateBatteryStatus(dashboardSettings) {
         try {
             OLog.warn("vxapp.js aggregateBatteryStatus *fire* " +
-             `dashboardSettings=${OLog.debugString(dashboardSettings)}`)
+                `dashboardSettings=${OLog.debugString(dashboardSettings)}`)
 
             const now = new Date()
             const DOWNSAMPLE_STEP = 10
@@ -195,11 +216,11 @@ VXApp = _.extend(VXApp || {}, {
 
             if (!swapEvent) {
                 OLog.warn("vxapp.js aggregateBatteryStatus No SWAP_BATTERY event " +
-                 `found (batterySwapIndex=${batterySwapIndex})`)
+                    `found (batterySwapIndex=${batterySwapIndex})`)
                 return
             }
 
-            const swapTime = swapEvent.timestamp
+            const swapTime = new Date(swapEvent.timestamp)
             OLog.warn(`vxapp.js aggregateBatteryStatus Using SWAP_BATTERY at ${swapTime.toISOString()}`)
 
             // --- Step 2: Collect POWER_STATUS events since that swap ---
@@ -239,12 +260,11 @@ VXApp = _.extend(VXApp || {}, {
 
                 if (i % DOWNSAMPLE_STEP === 0) {
                     const ts = new Date(e.timestamp)
-                    const timeLabel = ts.toLocaleTimeString("en-US", {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                        hour12: false,
-                        timeZone: "America/Los_Angeles"
-                    })
+                    const elapsedMs = ts - swapTime
+                    const elapsedMinutes = Math.floor(elapsedMs / 60000)
+                    const hours = Math.floor(elapsedMinutes / 60)
+                    const minutes = elapsedMinutes % 60
+                    const timeLabel = `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}`
 
                     samples.push({
                         ts: ts.getTime(),
@@ -280,14 +300,14 @@ VXApp = _.extend(VXApp || {}, {
 
             const aggregate = {
                 timestamp: now,
-                swapTime: swapTime,
+                swapTime,
                 sampleCount: samples.length,
                 batterySwapIndex,
                 payload
             }
 
             Aggregates.upsert(
-                { aggregate_name: "BATTERY_STATUS"},
+                { aggregate_name: "BATTERY_STATUS" },
                 { $set: aggregate }
             )
         }

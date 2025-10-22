@@ -23,8 +23,8 @@
 }
 
 .btn-chart-header {
-    height: 100%;
-    width: 150px;
+    margin-top: 32px;
+    width: 100%;
 }
 
 .dashboard-readout-container {
@@ -39,13 +39,25 @@
 
 .dashboard-readout-header {
     color: #ffffff;
-    font-size: 18px;
+    font-size: 30px;
     padding-bottom: 18px;
 }
 
 .dashboard-readout-body {
     color: #00ff00;
-    font-size: 18px;
+    font-size: 30px;
+}
+
+@media (max-width : @screen-lg-min) {
+
+    .dashboard-readout-header {
+        font-size: 18px;
+        padding-bottom: 12px;
+    }
+
+    .dashboard-readout-body {
+        font-size: 18px;
+    }
 }
 
 

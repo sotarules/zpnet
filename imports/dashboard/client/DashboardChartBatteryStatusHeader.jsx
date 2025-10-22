@@ -37,7 +37,7 @@ export default class DashboardChartBatteryStatusHeader extends Component {
     renderRow() {
         return (
             <div className="row">
-                <div className="col-sm-2">
+                <div className="col-sm-4">
                     <VXSelect id={`${this.props.id}-battery-status-mode`}
                         label={Util.i18n("common.label_battery_status_mode")}
                         codeArray={UX.makeCodeArray("batteryStatusMode")}
@@ -45,7 +45,7 @@ export default class DashboardChartBatteryStatusHeader extends Component {
                         dbName="batteryStatusMode"
                         onChange={this.handleChangeControl.bind(this)}/>
                 </div>
-                <div className="col-sm-2">
+                <div className="col-sm-4">
                     <VXSpin id={`${this.props.id}-battery-swap-index`}
                         label={Util.i18n("common.label_battery_swap_index")}
                         value={VXApp.getDashboardSettings("batterySwapIndex") || 0}
@@ -54,7 +54,7 @@ export default class DashboardChartBatteryStatusHeader extends Component {
                         dbName="batterySwapIndex"
                         onChange={this.handleChangeControl.bind(this)}/>
                 </div>
-                <div className="col-sm-2">
+                <div className="col-sm-4">
                     <VXButton id={`${this.props.id}-swap-battery`}
                         className="btn btn-primary btn-chart-header"
                         onClick={this.handleClickSwapBattery.bind(this)}>

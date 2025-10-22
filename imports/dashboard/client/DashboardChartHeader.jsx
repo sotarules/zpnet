@@ -15,7 +15,7 @@ export default class DashboardChartHeader extends Component {
         return (
             <div className={`top-header flexi-fixed ${this.props.className || ""}`}>
                 <div className="row">
-                    <div className="col-sm-2">
+                    <div className="col-sm-6">
                         <table className="top-table">
                             <tbody>
                                 <tr>
@@ -46,7 +46,7 @@ export default class DashboardChartHeader extends Component {
                             </tbody>
                         </table>
                     </div>
-                    <div className="col-sm-10">
+                    <div className="col-sm-6">
                         {this.props.headerComponent}
                     </div>
                 </div>
