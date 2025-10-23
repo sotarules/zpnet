@@ -68,7 +68,7 @@ export default class ReadoutTable extends Component {
                     clearInterval(this.typingTimer)
                     this.typingTimer = null
                 }
-            }, 1)
+            }, 10)
         })
     }
 
