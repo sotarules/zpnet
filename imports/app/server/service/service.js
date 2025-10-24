@@ -12,6 +12,10 @@ WebApp.connectHandlers.use("/api/upload_test", (req, res) => {
     VXApp.handleRESTAPIUploadTest(req, res)
 })
 
+WebApp.connectHandlers.use("/api/download_test", (req, res) => {
+    VXApp.handleRESTAPIDownloadTest(req, res)
+})
+
 WebApp.connectHandlers.use("/api", (req, res) => {
     VXApp.handleRESTAPIRequest(req, res)
 })

@@ -1,69 +1,106 @@
 VXApp = _.extend(VXApp || {}, {
 
     /**
-     * Handle REST API test..
-     *
-     * @param {object} req HTTP request object.
-     * @param {object} res HTTP response object.
+     * Handle REST API test.
      */
     handleRESTAPITest(req, res) {
         try {
             const body = { message: "ZPNet OK" }
-            res.writeHead(200, {"Content-Type": "application/json"})
+            res.writeHead(200, {
+                "Content-Type": "application/json",
+                "Connection": "close"
+            })
             res.end(JSON.stringify(body))
         }
         catch (error) {
             OLog.error(`vxapp.js handleRESTAPITest Error: ${error.message}`)
-            res.writeHead(500, {"Content-Type": "text/plain"})
-            res.end("Internal Server Error")
+            const err = { error: "Internal Server Error" }
+            res.writeHead(500, {
+                "Content-Type": "application/json",
+                "Connection": "close"
+            })
+            res.end(JSON.stringify(err))
         }
     },
 
     /**
      * Handle REST API upload test.
-     *
-     * @param {object} req HTTP request object.
-     * @param {object} res HTTP response object.
      */
     handleRESTAPIUploadTest(req, res) {
         try {
             const body = { message: "ZPNet Upload OK" }
-            res.writeHead(200, {"Content-Type": "application/json"})
+            res.writeHead(200, {
+                "Content-Type": "application/json",
+                "Connection": "close"
+            })
             res.end(JSON.stringify(body))
         }
         catch (error) {
             OLog.error(`vxapp.js handleRESTAPIUploadTest Error: ${error.message}`)
-            res.writeHead(500, {"Content-Type": "text/plain"})
-            res.end("Internal Server Error")
+            const err = { error: "Internal Server Error" }
+            res.writeHead(500, {
+                "Content-Type": "application/json",
+                "Connection": "close"
+            })
+            res.end(JSON.stringify(err))
         }
     },
 
     /**
-     * Handle REST API request.
-     *
-     * @param {object} req HTTP request object.
-     * @param {object} res HTTP response object.
+     * Handle REST API download test.
+     */
+    handleRESTAPIDownloadTest(req, res) {
+        try {
+            const payload = Array.from({ length: 1024 * 1024 }, () =>
+                String.fromCharCode(65 + Math.floor(Math.random() * 26))
+            ).join("")
+            const body = { message: "ZPNet Download OK", payload }
+            res.writeHead(200, {
+                "Content-Type": "application/json",
+                "Connection": "close"
+            })
+            res.end(JSON.stringify(body))
+        }
+        catch (error) {
+            OLog.error(`vxapp.js handleRESTAPIDownloadTest Error: ${error.message}`)
+            const err = { error: "Internal Server Error" }
+            res.writeHead(500, {
+                "Content-Type": "application/json",
+                "Connection": "close"
+            })
+            res.end(JSON.stringify(err))
+        }
+    },
+
+    /**
+     * Handle REST API request router.
      */
     handleRESTAPIRequest(req, res) {
         try {
             switch (req.method) {
             case "POST":
                 this.handlePost(req, res)
-                break;
+                break
             case "GET":
                 this.handleGet(req, res)
-                break;
+                break
             default:
                 OLog.warn(`vxapp.js handleRESTAPIRequest Unsupported method: ${req.method}`)
-                res.writeHead(405, {"Content-Type": "text/plain"})
-                res.end("Method Not Allowed")
-                break;
+                res.writeHead(405, {
+                    "Content-Type": "application/json",
+                    "Connection": "close"
+                })
+                res.end(JSON.stringify({ error: "Method Not Allowed" }))
+                break
             }
         }
         catch (error) {
             OLog.error(`vxapp.js handleRESTAPIRequest Error: ${error.message}`)
-            res.writeHead(500, {"Content-Type": "text/plain"})
-            res.end("Internal Server Error")
+            res.writeHead(500, {
+                "Content-Type": "application/json",
+                "Connection": "close"
+            })
+            res.end(JSON.stringify({ error: "Internal Server Error" }))
         }
     },
 
@@ -75,13 +112,19 @@ VXApp = _.extend(VXApp || {}, {
         try {
             if (!req.body) {
                 OLog.error("vxapp.js handlePost Request contains no body")
-                res.writeHead(400);
-                return res.end("Missing request body");
+                res.writeHead(400, {
+                    "Content-Type": "application/json",
+                    "Connection": "close"
+                })
+                return res.end(JSON.stringify({ error: "Missing request body" }))
             }
             if (!Array.isArray(req.body)) {
                 OLog.error("vxapp.js handlePost Request body must be of type array")
-                res.writeHead(400);
-                return res.end("Body must be array")
+                res.writeHead(400, {
+                    "Content-Type": "application/json",
+                    "Connection": "close"
+                })
+                return res.end(JSON.stringify({ error: "Body must be array" }))
             }
             req.body.forEach(event => {
                 const zpnetEvent = {
@@ -94,40 +137,46 @@ VXApp = _.extend(VXApp || {}, {
                 }
                 ZPNetEvents.insert(zpnetEvent)
             })
-            res.writeHead(200, {"Content-Type": "text/plain"})
-            res.end("POST received")
+            res.writeHead(200, {
+                "Content-Type": "application/json",
+                "Connection": "close"
+            })
+            res.end(JSON.stringify({ message: "POST received" }))
         }
         catch (error) {
             OLog.error(`vxapp.js handlePost Error: ${error.message}`)
-            res.writeHead(500);
-            res.end("Error processing POST")
+            res.writeHead(500, {
+                "Content-Type": "application/json",
+                "Connection": "close"
+            })
+            res.end(JSON.stringify({ error: "Error processing POST" }))
         }
     },
 
     /**
      * Handle GET from ZPNet (return pending commands).
-     *
-     * @param {object} req HTTP request object.
-     * @param {object} res HTTP response object.
      */
     handleGet(req, res) {
         try {
-            const selector = {}
-            selector.despooled = { $exists: false }
+            const selector = { despooled: { $exists: false } }
             const pendingCommands = ZPNetCommands.find(selector).fetch()
-            res.writeHead(200, {"Content-Type": "application/json"})
+            res.writeHead(200, {
+                "Content-Type": "application/json",
+                "Connection": "close"
+            })
             res.end(JSON.stringify(pendingCommands))
             pendingCommands.forEach(command => {
-                const modifier = {}
-                modifier.$set = {}
-                modifier.$set.despooled = new Date()
+                const modifier = { $set: { despooled: new Date() } }
                 ZPNetCommands.update(command._id, modifier)
             })
         }
         catch (error) {
             OLog.error(`vxapp.js handleGet Error: ${error.message}`)
-            res.writeHead(500)
-            res.end("Error processing GET")
+            res.writeHead(500, {
+                "Content-Type": "application/json",
+                "Connection": "close"
+            })
+            res.end(JSON.stringify({ error: "Error processing GET" }))
         }
     },
 
