@@ -31,6 +31,7 @@ VXApp = _.extend(VXApp || {}, {
             const body = { message: "ZPNet Upload OK" }
             res.writeHead(200, {
                 "Content-Type": "application/json",
+                "Content-Encoding": "identity",
                 "Connection": "close"
             })
             res.end(JSON.stringify(body))
@@ -57,6 +58,7 @@ VXApp = _.extend(VXApp || {}, {
             const body = { message: "ZPNet Download OK", payload }
             res.writeHead(200, {
                 "Content-Type": "application/json",
+                "Content-Encoding": "identity",
                 "Connection": "close"
             })
             res.end(JSON.stringify(body))
