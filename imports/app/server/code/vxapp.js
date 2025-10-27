@@ -301,6 +301,10 @@ VXApp = _.extend(VXApp || {}, {
                 const v5vCurrent = sensors[2]?.current_ma
                 const v5vPower   = sensors[2]?.power_w
 
+                const v24vVoltage = sensors[3]?.voltage_v
+                const v24vCurrent = sensors[3]?.current_ma
+                const v24vPower   = sensors[3]?.power_w
+
                 if (
                     batteryVoltage == null ||
                     v3v3Voltage == null ||
@@ -328,7 +332,10 @@ VXApp = _.extend(VXApp || {}, {
                         v3v3Power,
                         v5vVoltage,
                         v5vCurrent,
-                        v5vPower
+                        v5vPower,
+                        v24vVoltage,
+                        v24vCurrent,
+                        v24vPower
                     })
                 }
                 i++
@@ -346,7 +353,10 @@ VXApp = _.extend(VXApp || {}, {
                 v3v3Power: p.v3v3Power,
                 v5vVoltage: p.v5vVoltage,
                 v5vCurrent: p.v5vCurrent,
-                v5vPower: p.v5vPower
+                v5vPower: p.v5vPower,
+                v24vVoltage: p.v24vVoltage,
+                v24vCurrent: p.v24vCurrent,
+                v24vPower: p.v24vPower
             }))
 
             const aggregate = {
