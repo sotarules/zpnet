@@ -4,3 +4,4 @@
 ZPNetEvents = new Meteor.Collection("zpnet_events")
 ZPNetCommands = new Meteor.Collection("zpnet_commands")
 Aggregates = new Meteor.Collection("aggregates")
+DashboardReadout = new Meteor.Collection("dashboard_readout")

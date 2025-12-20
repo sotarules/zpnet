@@ -140,7 +140,8 @@
     "Holder" : true,
     "ZPNetEvents" : true,
     "ZPNetCommands" : true,
-    "Aggregates" : true
+    "Aggregates" : true,
+    "DashboardReadout" : true
   },
    "rules": {
 /**

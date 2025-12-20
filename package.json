@@ -52,7 +52,8 @@
     "redux-persist": "^6.0.0",
     "simpl-schema": "^3.4.1",
     "spin.js": "^4.1.1",
-    "tinymce": "^6.5.0"
+    "tinymce": "^6.5.0",
+    "ws": "^8.18.3"
   },
   "devDependencies": {
     "@babel/core": "^7.22.5",

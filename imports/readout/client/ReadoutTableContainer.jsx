@@ -1,39 +1,18 @@
-import React, {Component} from "react"
+import {withTracker} from "meteor/react-meteor-data"
 import ReadoutTable from "./ReadoutTable"
 
-export default class ReadoutTableContainer extends Component {
-
-    constructor(props) {
-        super(props)
-        this.state = {
-            aggregates: {}
-        }
+export default withTracker(( ) => {
+    const ready = new ReactiveVar(false)
+    const subscriptionName = "dashboard_readout"
+    const handles = []
+    handles.push(UX.subscribe(subscriptionName))
+    UX.waitSubscriptions(handles, () => {
+        ready.set(true)
+        UX.clearLoading()
+    })
+    return {
+        ready : !!ready.get(),
+        readout : DashboardReadout.findOne("readout")
     }
-
-    componentDidMount() {
-        this.ws = new WebSocket("ws://localhost:8765")
-        this.ws.onmessage = (evt) => {
-            const payload = JSON.parse(evt.data)
-            this.setState({
-                aggregates: {
-                    payload
-                }
-            })
-        }
-    }
-
-    componentWillUnmount() {
-        if (this.ws) {
-            this.ws.close()
-        }
-    }
-
-    render() {
-        return (
-            <ReadoutTable
-                aggregates={this.state.aggregates}
-            />
-        )
-    }
-}
+})(ReadoutTable)
 
