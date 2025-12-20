@@ -97,7 +97,9 @@ export default class OffCanvasNav extends Component {
     }
 
     onClickDashboard(event) {
-        this.onClickCommon(event, "DASHBOARD_READOUT", "dashboard_readout")
+        OLog.debug(`ux.js onClickDashboard user=${Util.getUserEmail()}`)
+        event.persist()
+        UX.onClickMenuItem(event)
     }
 
     onClickBatteryStatus(event) {

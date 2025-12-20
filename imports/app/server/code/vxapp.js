@@ -131,11 +131,11 @@ VXApp = _.extend(VXApp || {}, {
             req.body.forEach(event => {
                 const zpnetEvent = {
                     id: event.id,
-                    timestamp: moment(`${event.timestamp}`).toDate(),
+                    timestamp: moment(`${event.ts}`).toDate(),
                     event_type: event.event_type,
                     device: event.device,
                     device_description: event.device_description,
-                    payload: Util.parseJSON(event.payload)
+                    payload: event.payload
                 }
                 ZPNetEvents.insert(zpnetEvent)
             })
@@ -374,50 +374,6 @@ VXApp = _.extend(VXApp || {}, {
         }
         catch (error) {
             OLog.error(`vxapp.js aggregateBatteryStatus Error: ${error.message}`)
-        }
-    },
-
-    /**
-     * Aggregate the most recent DASHBOARD_READOUT event for remote display.
-     *
-     * This is a singleton aggregate: it simply finds the latest DASHBOARD_READOUT
-     * event in ZPNetEvents and mirrors its payload into the Aggregates collection
-     * under the name "DASHBOARD_READOUT".
-     */
-    aggregateDashboardReadout() {
-        try {
-            const now = new Date()
-
-            const latestEvent = ZPNetEvents.findOne(
-                { event_type: "DASHBOARD_READOUT" },
-                { sort: { timestamp: -1 } }
-            )
-
-            if (!latestEvent) return
-
-            const existing = Aggregates.findOne({ aggregate_name: "DASHBOARD_READOUT" })
-
-            // compare actual payloads (can use _.isEqual or stringify)
-            const newPayload = latestEvent.payload || {}
-            const oldPayload = existing?.payload || {}
-
-            const same = JSON.stringify(newPayload) === JSON.stringify(oldPayload)
-            if (same) return  // no change → no write
-
-            // write only if changed
-            Aggregates.upsert(
-                { aggregate_name: "DASHBOARD_READOUT" },
-                {
-                    $set: {
-                        timestamp: now,
-                        eventTimestamp: latestEvent.timestamp,
-                        payload: newPayload
-                    }
-                }
-            )
-        }
-        catch (error) {
-            OLog.error(`vxapp.js aggregateDashboardReadout error: ${error.message}`)
         }
     }
 })

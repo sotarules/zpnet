@@ -20,16 +20,6 @@ Meteor.i18nMessages.common = _.extend(Meteor.i18nMessages.common || {}, {
         rx : "$Cut$"
     },
 
-    header_dashboard_readout_name : {
-        en : "Dashboard Readout",
-        rx : "$Dashboard Readou$"
-    },
-
-    header_dashboard_readout_description : {
-        en : "Real-time Dashboard Readout",
-        rx : "$Real-time Dashboard Readout$"
-    },
-
     header_battery_status_name : {
         en : "Battery Status",
         rx : "$Battery Status$"
