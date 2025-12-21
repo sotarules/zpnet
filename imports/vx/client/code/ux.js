@@ -1199,10 +1199,8 @@ UX = {
      * @param {function} callback Callback.
      */
     waitSubscriptions(handles, callback) {
-        OLog.debug(`ux.js waitSubscriptions *waiting* total of ${handles.length} subscriptions to be published`)
         try {
             if (UX.areSubscriptionsReady(handles)) {
-                OLog.debug("ux.js waitSubscriptions immediately *ready* continue")
                 callback(null, { success: true })
                 return
             }

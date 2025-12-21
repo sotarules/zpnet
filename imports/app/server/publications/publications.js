@@ -2,23 +2,19 @@ import WebSocket from "ws"
 
 Meteor.publish("battery_status", function (dashboardSettings) {
     try {
-        OLog.warn(`publications.js battery_status *start* dashboardSettings=${OLog.warnString(dashboardSettings)}`, this.userId)
-        const cursor = VXApp.handlePublishAggregate(dashboardSettings, VXApp.aggregateBatteryStatus, this, 20000)
-        OLog.warn(`publications.js battery_status count=${cursor.count()}`, this.userId)
-        return cursor
-    } catch (error) {
+        return VXApp.handlePublishAggregate(dashboardSettings, VXApp.aggregateBatteryStatus, this, 20000)
+    }
+    catch (error) {
         OLog.error(`publications.js battery_status Error: ${error.message}`, this.userId)
     }
 })
 
 Meteor.publish("zpnet_events", function (zpnetEventsSettings) {
     try {
-        OLog.warn(`publications.js zpnet_events *start* zpnetEventsSettings=${OLog.warnString(zpnetEventsSettings)}`, this.userId)
         const publishRequest = VXApp.makeZPNetPublishRequest(zpnetEventsSettings)
-        const cursor = ZPNetEvents.find(publishRequest.criteria, publishRequest.options)
-        OLog.warn(`publications.js zpnet_events count=${cursor.count()}`, this.userId)
-        return cursor
-    } catch (error) {
+        return ZPNetEvents.find(publishRequest.criteria, publishRequest.options)
+    }
+    catch (error) {
         OLog.error(`publications.js zpnet_events Error: ${error.message}`, this.userId)
     }
 })
@@ -30,7 +26,6 @@ Meteor.publish("dashboard_readout", function() {
     const COLLECTION = "dashboard_readout"
     const DOC_ID = "readout"
 
-    // ---- ensure websocket exists ----
     function ensureWebSocket(state) {
         if (state.ws) return
 
@@ -40,7 +35,8 @@ Meteor.publish("dashboard_readout", function() {
             let payload
             try {
                 payload = JSON.parse(data.toString())
-            } catch {
+            }
+            catch {
                 return
             }
 
@@ -50,7 +46,8 @@ Meteor.publish("dashboard_readout", function() {
             state.subscribers.forEach((sub) => {
                 if (first) {
                     sub.added(COLLECTION, DOC_ID, payload)
-                } else {
+                }
+                else {
                     sub.changed(COLLECTION, DOC_ID, payload)
                 }
             })
@@ -68,8 +65,6 @@ Meteor.publish("dashboard_readout", function() {
     }
 
     try {
-
-        OLog.warn(`publications.js dashboard_readout *start* user=${this.userId}`, this.userId)
 
         // ---- static per-process state (closed over) ----
         if (!Meteor._dashboardReadoutState) {
