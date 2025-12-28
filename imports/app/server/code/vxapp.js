@@ -87,7 +87,7 @@ VXApp = _.extend(VXApp || {}, {
                 this.handleGet(req, res)
                 break
             default:
-                OLog.warn(`vxapp.js handleRESTAPIRequest Unsupported method: ${req.method}`)
+                OLog.debug(`vxapp.js handleRESTAPIRequest Unsupported method: ${req.method}`)
                 res.writeHead(405, {
                     "Content-Type": "application/json",
                     "Connection": "close"
@@ -193,13 +193,13 @@ VXApp = _.extend(VXApp || {}, {
     handlePublishAggregate(dashboardSettings, funktion, publicationContext, intervalMs) {
         try {
             const aggregateName = dashboardSettings.aggregateName
-            OLog.warn(`vxapp.js handlePublishAggregate ${aggregateName} *subscribe*`)
+            OLog.debug(`vxapp.js handlePublishAggregate ${aggregateName} *subscribe*`)
             const intervalHandle = VXApp.startAggregator(dashboardSettings, funktion, intervalMs)
             publicationContext.onStop(() => {
-                OLog.warn(`vxapp.js handlePublishAggregate ${aggregateName} onStop *init*`)
+                OLog.debug(`vxapp.js handlePublishAggregate ${aggregateName} onStop *init*`)
                 VXApp.stopAggregator(dashboardSettings, intervalHandle)
             })
-            OLog.warn(`vxapp.js handlePublishAggregate ${aggregateName} returning cursor`)
+            OLog.debug(`vxapp.js handlePublishAggregate ${aggregateName} returning cursor`)
             return Aggregates.find({aggregate_name: aggregateName})
         }
         catch (error) {
@@ -221,7 +221,7 @@ VXApp = _.extend(VXApp || {}, {
         const intervalHandle = Meteor.setInterval(() => {
             funktion(dashboardSettings)
         }, intervalMs)
-        OLog.warn(`vxapp.js startAggregator ${aggregateName} *start* intervalMs=${intervalMs}`)
+        OLog.debug(`vxapp.js startAggregator ${aggregateName} *start* intervalMs=${intervalMs}`)
         return intervalHandle
     },
 
@@ -234,7 +234,7 @@ VXApp = _.extend(VXApp || {}, {
     stopAggregator(dashboardSettings, intervalHandle) {
         const aggregateName = dashboardSettings.aggregateName
         Meteor.clearInterval(intervalHandle)
-        OLog.warn(`vxapp.js stopAggregator ${aggregateName} *stop*`)
+        OLog.debug(`vxapp.js stopAggregator ${aggregateName} *stop*`)
     },
 
     /**
@@ -251,7 +251,7 @@ VXApp = _.extend(VXApp || {}, {
      */
     aggregateBatteryStatus(dashboardSettings) {
         try {
-            OLog.warn("vxapp.js aggregateBatteryStatus *fire* " +
+            OLog.debug("vxapp.js aggregateBatteryStatus *fire* " +
                 `dashboardSettings=${OLog.debugString(dashboardSettings)}`)
 
             const now = new Date()
@@ -266,13 +266,13 @@ VXApp = _.extend(VXApp || {}, {
             const swapEvent = swapCursor.fetch()[0]
 
             if (!swapEvent) {
-                OLog.warn("vxapp.js aggregateBatteryStatus No SWAP_BATTERY event " +
+                OLog.debug("vxapp.js aggregateBatteryStatus No SWAP_BATTERY event " +
                     `found (batterySwapIndex=${batterySwapIndex})`)
                 return
             }
 
             const swapTime = new Date(swapEvent.timestamp)
-            OLog.warn(`vxapp.js aggregateBatteryStatus Using SWAP_BATTERY at ${swapTime.toISOString()}`)
+            OLog.debug(`vxapp.js aggregateBatteryStatus Using SWAP_BATTERY at ${swapTime.toISOString()}`)
 
             // --- Step 2: Collect POWER_STATUS events since that swap ---
             const selector = {
@@ -341,7 +341,7 @@ VXApp = _.extend(VXApp || {}, {
                 i++
             })
 
-            OLog.warn(`vxapp.js aggregateBatteryStatus samples.length=${samples.length}`)
+            OLog.debug(`vxapp.js aggregateBatteryStatus samples.length=${samples.length}`)
 
             const payload = samples.map(p => ({
                 timeLabel: p.timeLabel,

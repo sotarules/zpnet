@@ -1,8 +1,9 @@
 import WebSocket from "ws"
 
-let ws = null
+const readoutSubscription = { ws: null, messageHandlers: new Set()
+}
 
-Meteor.publish("battery_status", function(dashboardSettings) {
+Meteor.publish("battery_status", function (dashboardSettings) {
     try {
         return VXApp.handlePublishAggregate(dashboardSettings, VXApp.aggregateBatteryStatus, this, 20000)
     }
@@ -11,7 +12,7 @@ Meteor.publish("battery_status", function(dashboardSettings) {
     }
 })
 
-Meteor.publish("zpnet_events", function(zpnetEventsSettings) {
+Meteor.publish("zpnet_events", function (zpnetEventsSettings) {
     try {
         const publishRequest = VXApp.makeZPNetPublishRequest(zpnetEventsSettings)
         return ZPNetEvents.find(publishRequest.criteria, publishRequest.options)
@@ -22,36 +23,43 @@ Meteor.publish("zpnet_events", function(zpnetEventsSettings) {
 })
 
 Meteor.publish("dashboard_readout", function() {
+    const self = this
 
     try {
-
-        const self = this
-
-        if (!ws) {
-            OLog.debug("publications.js dashboard_readout WebSocket *init*", this.userId)
-            ws = new WebSocket("ws://127.0.0.1:8765")
+        if (!readoutSubscription.ws) {
+            readoutSubscription.ws = new WebSocket("ws://127.0.0.1:8765")
+            readoutSubscription.ws.on("close", Meteor.bindEnvironment(() => {
+                OLog.warn("publications.js dashboard_readout *close*")
+                readoutSubscription.ws = null
+            }))
+            readoutSubscription.ws.on("error", Meteor.bindEnvironment((error) => {
+                OLog.error(`publications.js dashboard_readout *error* ${error.message}`)
+                readoutSubscription.ws = null
+            }))
         }
-
-        self.added("dashboard_readout", "readout", {});
-
-        self.ready()
-
-        ws.on("message", (data) => {
+        const onMessage = Meteor.bindEnvironment((data) => {
             const payload = Util.parseJSON(data.toString())
+            if (!payload) return
             self.changed("dashboard_readout", "readout", payload)
         })
-
-        ws.on("close", Meteor.bindEnvironment(() => {
-            OLog.error("publications.js dashboard_readout WebSocket close", this.userId)
-            ws = null
-        }))
-
-        ws.on("error", Meteor.bindEnvironment((error) => {
-            OLog.error(`publications.js dashboard_readout WebSocket error ${error.message}`, this.userId)
-            ws = null
-        }))
+        readoutSubscription.ws.on("message", onMessage)
+        readoutSubscription.messageHandlers.add(onMessage)
+        self.added("dashboard_readout", "readout", {})
+        self.ready()
+        self.onStop(() => {
+            if (readoutSubscription.ws) {
+                readoutSubscription.ws.off("message", onMessage)
+            }
+            readoutSubscription.messageHandlers.delete(onMessage)
+            if (readoutSubscription.messageHandlers.size === 0 && readoutSubscription.ws) {
+                readoutSubscription.ws.close()
+                readoutSubscription.ws = null
+            }
+        })
     }
     catch (error) {
-        OLog.error(`publications.js dashboard_readout error ${error.message}`, this.userId)
+        OLog.error(`publications.js dashboard_readout publish error ${error.message}`, self.userId)
     }
 })
+
+

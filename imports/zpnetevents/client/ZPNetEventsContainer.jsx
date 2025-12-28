@@ -10,7 +10,7 @@ const MeteorContainer = withTracker(props => {
         ready.set(true)
         UX.clearLoading()
     })
-    OLog.warn(`ZPNetEventsContainer.jsx withTracker *fire* subscriptionName=zpnet-events ready=${ready.get()}`)
+    OLog.debug(`ZPNetEventsContainer.jsx withTracker *fire* subscriptionName=zpnet-events ready=${ready.get()}`)
     return {
         ready : !!ready.get()
     }

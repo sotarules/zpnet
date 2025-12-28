@@ -446,7 +446,7 @@ VXApp = { ...VXApp, ...{
             handles = handles.concat(VXApp.changeAppGlobalSubscriptions(doClient, doServer, newSubscriptionParameters))
         }
 
-        OLog.warn("vxapp.js globalSubscriptions have been computed *wait* for publication")
+        OLog.debug("vxapp.js globalSubscriptions have been computed *wait* for publication")
         UX.setLoading(true)
         UX.waitSubscriptions(handles, (error, result) => {
             if (VXApp.onAppChangeSubscriptionsReady) {

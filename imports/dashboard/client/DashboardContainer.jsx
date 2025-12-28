@@ -11,7 +11,7 @@ const MeteorContainer = withTracker(props => {
         ready.set(true)
         UX.clearLoading()
     })
-    OLog.warn(`DashboardContainer.jsx withTracker *fire* subscriptionName=${subscriptionName} ready=${ready.get()}`)
+    OLog.debug(`DashboardContainer.jsx withTracker *fire* subscriptionName=${subscriptionName} ready=${ready.get()}`)
     return {
         ready : !!ready.get()
     }
