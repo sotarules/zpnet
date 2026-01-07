@@ -289,26 +289,35 @@ VXApp = _.extend(VXApp || {}, {
                 const sensors = e.payload?.sensors
                 if (!sensors || sensors.length < 3) return
 
-                const batteryVoltage = sensors[0]?.voltage_v
-                const batteryCurrent = sensors[0]?.current_ma
-                const batteryPower   = sensors[0]?.power_w
+                // Battery "0x40"
+                const battery = _.findWhere(sensors, { address: "0x40" })
+                const batteryVoltage = battery?.voltage_v
+                const batteryCurrent = battery?.current_ma
+                const batteryPower   = battery?.power_w
 
-                const v3v3Voltage = sensors[1]?.voltage_v
-                const v3v3Current = sensors[1]?.current_ma
-                const v3v3Power   = sensors[1]?.power_w
+                // 3v3 Rail "0x41"
+                const v3v3 = _.findWhere(sensors, { address: "0x41" })
+                const v3v3Voltage = v3v3?.voltage_v
+                const v3v3Current = v3v3?.current_ma
+                const v3v3Power   = v3v3?.power_w
 
-                const v5vVoltage = sensors[2]?.voltage_v
-                const v5vCurrent = sensors[2]?.current_ma
-                const v5vPower   = sensors[2]?.power_w
+                // 5v0 Rail "0x44"
+                const v5v = _.findWhere(sensors, { address: "0x44" })
+                const v5vVoltage = v5v?.voltage_v
+                const v5vCurrent = v5v?.current_ma
+                const v5vPower   = v5v?.power_w
 
-                const v24vVoltage = sensors[3]?.voltage_v
-                const v24vCurrent = sensors[3]?.current_ma
-                const v24vPower   = sensors[3]?.power_w
+                // 24v Spur "0x45"
+                const v24v = _.findWhere(sensors, { address: "0x45" })
+                const v24vVoltage = v24v?.voltage_v
+                const v24vCurrent = v24v?.current_ma
+                const v24vPower   = v24v?.power_w
 
                 if (
                     batteryVoltage == null ||
                     v3v3Voltage == null ||
-                    v5vVoltage == null
+                    v5vVoltage == null ||
+                    v24vVoltage == null
                 ) {
                     return
                 }
