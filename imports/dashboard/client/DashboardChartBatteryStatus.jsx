@@ -31,7 +31,7 @@ export default class DashboardChartBatteryStatus extends Component {
                 {key: "batteryVoltage", color: "#8884d8", name: "Battery (V)"},
                 {key: "v3v3Voltage", color: "#82ca9d", name: "3.3V Rail"},
                 {key: "v5vVoltage", color: "#ff7300", name: "5V Rail"},
-                {key: "v24vVoltage", color: "#ff2200", name: "24V Spur"}
+                {key: "v5tVoltage", color: "#ff2200", name: "5V Teensy"}
             ]
             break
         case "CURRENT":
@@ -39,7 +39,7 @@ export default class DashboardChartBatteryStatus extends Component {
                 {key: "batteryCurrent", color: "#8884d8", name: "Battery (A)"},
                 {key: "v3v3Current", color: "#82ca9d", name: "3.3V Rail"},
                 {key: "v5vCurrent", color: "#ff7300", name: "5V Rail"},
-                {key: "v24vCurrent", color: "#ff2200", name: "24V Spur"}
+                {key: "v5tCurrent", color: "#ff2200", name: "5V Teensy"}
             ]
             break
         case "POWER":
@@ -47,7 +47,7 @@ export default class DashboardChartBatteryStatus extends Component {
                 {key: "batteryPower", color: "#8884d8", name: "Battery (W)"},
                 {key: "v3v3Power", color: "#82ca9d", name: "3.3V Rail"},
                 {key: "v5vPower", color: "#ff7300", name: "5V Rail"},
-                {key: "v24vPower", color: "#ff2200", name: "24V Spur"}
+                {key: "v5tPower", color: "#ff2200", name: "5V Teensy"}
             ]
             break
         default:

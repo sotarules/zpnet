@@ -307,17 +307,17 @@ VXApp = _.extend(VXApp || {}, {
                 const v5vCurrent = v5v?.current_ma
                 const v5vPower   = v5v?.power_w
 
-                // 24v Spur "0x45"
-                const v24v = _.findWhere(sensors, { address: "0x45" })
-                const v24vVoltage = v24v?.voltage_v
-                const v24vCurrent = v24v?.current_ma
-                const v24vPower   = v24v?.power_w
+                // 5v0 Teensy "0x45"
+                const v5t = _.findWhere(sensors, { address: "0x45" })
+                const v5tVoltage = v5t?.voltage_v
+                const v5tCurrent = v5t?.current_ma
+                const v5tPower   = v5t?.power_w
 
                 if (
                     batteryVoltage == null ||
                     v3v3Voltage == null ||
                     v5vVoltage == null ||
-                    v24vVoltage == null
+                    v5tVoltage == null
                 ) {
                     return
                 }
@@ -342,9 +342,9 @@ VXApp = _.extend(VXApp || {}, {
                         v5vVoltage,
                         v5vCurrent,
                         v5vPower,
-                        v24vVoltage,
-                        v24vCurrent,
-                        v24vPower
+                        v5tVoltage,
+                        v5tCurrent,
+                        v5tPower
                     })
                 }
                 i++
@@ -363,9 +363,9 @@ VXApp = _.extend(VXApp || {}, {
                 v5vVoltage: p.v5vVoltage,
                 v5vCurrent: p.v5vCurrent,
                 v5vPower: p.v5vPower,
-                v24vVoltage: p.v24vVoltage,
-                v24vCurrent: p.v24vCurrent,
-                v24vPower: p.v24vPower
+                v5tVoltage: p.v5tVoltage,
+                v5tCurrent: p.v5tCurrent,
+                v5tPower: p.v5tPower
             }))
 
             const aggregate = {
