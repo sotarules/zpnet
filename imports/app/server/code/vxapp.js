@@ -238,12 +238,15 @@ VXApp = _.extend(VXApp || {}, {
     },
 
     /**
-     * Aggregate rail voltages/currents/power for real-time analysis.
+     * Aggregate rail voltages/currents/power for real-time battery analysis.
      * Uses the most recent SWAP_BATTERY event (or Nth most recent if
      * batterySwapIndex > 0) to delimit the window of interest.
-     * Only POWER_STATUS events occurring after that timestamp are considered.
-     * Downsamples the result to keep payload small, and stores the resulting
-     * curve in the Aggregates collection under the name "BATTERY_STATUS".
+     *
+     * Consumes SYSTEM_STATUS events and dynamically aggregates all INA260
+     * rails found in payload.power.rails without hard-coded addresses.
+     *
+     * Downsamples the result to keep payload size manageable and stores the
+     * resulting curve in the Aggregates collection under "BATTERY_STATUS".
      *
      * X-axis labels are expressed as elapsed time (HH:MM) since SWAP_BATTERY.
      *
@@ -251,8 +254,10 @@ VXApp = _.extend(VXApp || {}, {
      */
     aggregateBatteryStatus(dashboardSettings) {
         try {
-            OLog.debug("vxapp.js aggregateBatteryStatus *fire* " +
-                `dashboardSettings=${OLog.debugString(dashboardSettings)}`)
+            OLog.debug(
+                "vxapp.js aggregateBatteryStatus *fire* " +
+                `dashboardSettings=${OLog.debugString(dashboardSettings)}`
+            )
 
             const now = new Date()
             const DOWNSAMPLE_STEP = 10
@@ -266,17 +271,21 @@ VXApp = _.extend(VXApp || {}, {
             const swapEvent = swapCursor.fetch()[0]
 
             if (!swapEvent) {
-                OLog.debug("vxapp.js aggregateBatteryStatus No SWAP_BATTERY event " +
-                    `found (batterySwapIndex=${batterySwapIndex})`)
+                OLog.debug(
+                    "vxapp.js aggregateBatteryStatus No SWAP_BATTERY event " +
+                    `found (batterySwapIndex=${batterySwapIndex})`
+                )
                 return
             }
 
             const swapTime = new Date(swapEvent.timestamp)
-            OLog.debug(`vxapp.js aggregateBatteryStatus Using SWAP_BATTERY at ${swapTime.toISOString()}`)
+            OLog.debug(
+                `vxapp.js aggregateBatteryStatus Using SWAP_BATTERY at ${swapTime.toISOString()}`
+            )
 
-            // --- Step 2: Collect POWER_STATUS events since that swap ---
+            // --- Step 2: Collect SYSTEM_STATUS events since swap ---
             const selector = {
-                event_type: "POWER_STATUS",
+                event_type: "SYSTEM_STATUS",
                 timestamp: { $gte: swapTime }
             }
             const options = { sort: { timestamp: 1 } } // oldest → newest
@@ -286,41 +295,8 @@ VXApp = _.extend(VXApp || {}, {
             let i = 0
 
             cursor.forEach(e => {
-                const sensors = e.payload?.sensors
-                if (!sensors || sensors.length < 3) return
-
-                // Battery "0x40"
-                const battery = _.findWhere(sensors, { address: "0x40" })
-                const batteryVoltage = battery?.voltage_v
-                const batteryCurrent = battery?.current_ma
-                const batteryPower   = battery?.power_w
-
-                // 3v3 Rail "0x41"
-                const v3v3 = _.findWhere(sensors, { address: "0x41" })
-                const v3v3Voltage = v3v3?.voltage_v
-                const v3v3Current = v3v3?.current_ma
-                const v3v3Power   = v3v3?.power_w
-
-                // 5v0 Rail "0x44"
-                const v5v = _.findWhere(sensors, { address: "0x44" })
-                const v5vVoltage = v5v?.voltage_v
-                const v5vCurrent = v5v?.current_ma
-                const v5vPower   = v5v?.power_w
-
-                // 5v0 Teensy "0x45"
-                const v5t = _.findWhere(sensors, { address: "0x45" })
-                const v5tVoltage = v5t?.voltage_v
-                const v5tCurrent = v5t?.current_ma
-                const v5tPower   = v5t?.power_w
-
-                if (
-                    batteryVoltage == null ||
-                    v3v3Voltage == null ||
-                    v5vVoltage == null ||
-                    v5tVoltage == null
-                ) {
-                    return
-                }
+                const rails = e.payload?.power?.rails
+                if (!Array.isArray(rails) || rails.length === 0) return
 
                 if (i % DOWNSAMPLE_STEP === 0) {
                     const ts = new Date(e.timestamp)
@@ -328,44 +304,54 @@ VXApp = _.extend(VXApp || {}, {
                     const elapsedMinutes = Math.floor(elapsedMs / 60000)
                     const hours = Math.floor(elapsedMinutes / 60)
                     const minutes = elapsedMinutes % 60
-                    const timeLabel = `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}`
+                    const timeLabel =
+                        `${hours.toString().padStart(2, "0")}:` +
+                        `${minutes.toString().padStart(2, "0")}`
+
+                    // --- Dynamically map all rails ---
+                    const railSnapshot = {}
+                    rails.forEach(r => {
+                        if (
+                            r.label == null ||
+                            r.voltage_v == null ||
+                            r.current_ma == null ||
+                            r.power_w == null
+                        ) {
+                            return
+                        }
+
+                        const key = r.label
+                            .toLowerCase()
+                            .replace(/\s+/g, "_")
+                            .replace(/[^a-z0-9_]/g, "")
+
+                        railSnapshot[key] = {
+                            label: r.label,
+                            voltage_v: r.voltage_v,
+                            current_ma: r.current_ma,
+                            power_w: r.power_w,
+                            ideal_voltage_v: r.ideal_voltage_v,
+                            address: r.address
+                        }
+                    })
 
                     samples.push({
                         ts: ts.getTime(),
                         timeLabel,
-                        batteryVoltage,
-                        batteryCurrent,
-                        batteryPower,
-                        v3v3Voltage,
-                        v3v3Current,
-                        v3v3Power,
-                        v5vVoltage,
-                        v5vCurrent,
-                        v5vPower,
-                        v5tVoltage,
-                        v5tCurrent,
-                        v5tPower
+                        rails: railSnapshot
                     })
                 }
+
                 i++
             })
 
-            OLog.debug(`vxapp.js aggregateBatteryStatus samples.length=${samples.length}`)
+            OLog.debug(
+                `vxapp.js aggregateBatteryStatus samples.length=${samples.length}`
+            )
 
-            const payload = samples.map(p => ({
-                timeLabel: p.timeLabel,
-                batteryVoltage: p.batteryVoltage,
-                batteryCurrent: p.batteryCurrent,
-                batteryPower: p.batteryPower,
-                v3v3Voltage: p.v3v3Voltage,
-                v3v3Current: p.v3v3Current,
-                v3v3Power: p.v3v3Power,
-                v5vVoltage: p.v5vVoltage,
-                v5vCurrent: p.v5vCurrent,
-                v5vPower: p.v5vPower,
-                v5tVoltage: p.v5tVoltage,
-                v5tCurrent: p.v5tCurrent,
-                v5tPower: p.v5tPower
+            const payload = samples.map(s => ({
+                timeLabel: s.timeLabel,
+                rails: s.rails
             }))
 
             const aggregate = {
@@ -382,7 +368,10 @@ VXApp = _.extend(VXApp || {}, {
             )
         }
         catch (error) {
-            OLog.error(`vxapp.js aggregateBatteryStatus Error: ${error.message}`)
+            OLog.error(
+                `vxapp.js aggregateBatteryStatus Error: ${error.message}`
+            )
         }
     }
+
 })
