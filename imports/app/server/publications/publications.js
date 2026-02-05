@@ -12,7 +12,7 @@ Meteor.publish("battery_status", function (dashboardSettings) {
     }
 })
 
-Meteor.publish("zpnet_events", function (zpnetEventsSettings) {
+Meteor.publish("zpnet_events", function(zpnetEventsSettings) {
     try {
         const publishRequest = VXApp.makeZPNetPublishRequest(zpnetEventsSettings)
         return ZPNetEvents.find(publishRequest.criteria, publishRequest.options)

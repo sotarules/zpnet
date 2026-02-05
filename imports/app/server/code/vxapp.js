@@ -242,13 +242,15 @@ VXApp = _.extend(VXApp || {}, {
      * Uses the most recent SWAP_BATTERY event (or Nth most recent if
      * batterySwapIndex > 0) to delimit the window of interest.
      *
-     * Consumes SYSTEM_STATUS events and dynamically aggregates all INA260
-     * rails found in payload.power.rails without hard-coded addresses.
+     * Consumes SYSTEM_STATUS events and flattens all power rails across
+     * all I²C buses into a single rail map suitable for visualization.
      *
-     * Downsamples the result to keep payload size manageable and stores the
-     * resulting curve in the Aggregates collection under "BATTERY_STATUS".
+     * HARD CONTRACT:
+     *   • SYSTEM_STATUS.payload.power exists
+     *   • payload.power contains bus objects (i2c-*)
+     *   • each bus contains rail objects with required fields
      *
-     * X-axis labels are expressed as elapsed time (HH:MM) since SWAP_BATTERY.
+     * Any violation is a bug and MUST throw.
      *
      * @param {object} dashboardSettings Dashboard settings object.
      */
@@ -271,17 +273,12 @@ VXApp = _.extend(VXApp || {}, {
             const swapEvent = swapCursor.fetch()[0]
 
             if (!swapEvent) {
-                OLog.debug(
-                    "vxapp.js aggregateBatteryStatus No SWAP_BATTERY event " +
-                    `found (batterySwapIndex=${batterySwapIndex})`
+                throw new Error(
+                    `SWAP_BATTERY not found (batterySwapIndex=${batterySwapIndex})`
                 )
-                return
             }
 
             const swapTime = new Date(swapEvent.timestamp)
-            OLog.debug(
-                `vxapp.js aggregateBatteryStatus Using SWAP_BATTERY at ${swapTime.toISOString()}`
-            )
 
             // --- Step 2: Collect SYSTEM_STATUS events since swap ---
             const selector = {
@@ -291,12 +288,13 @@ VXApp = _.extend(VXApp || {}, {
             const options = { sort: { timestamp: 1 } } // oldest → newest
             const cursor = ZPNetEvents.find(selector, options)
 
+            OLog.debug(`vxapp.js aggregateBatteryStatus Found ${cursor.count()} SYSTEM_STATUS events since swap at ${swapTime.toISOString()}`)
+
             const samples = []
             let i = 0
 
             cursor.forEach(e => {
-                const rails = e.payload?.power?.rails
-                if (!Array.isArray(rails) || rails.length === 0) return
+                const power = e.payload.power  // MUST exist
 
                 if (i % DOWNSAMPLE_STEP === 0) {
                     const ts = new Date(e.timestamp)
@@ -304,35 +302,32 @@ VXApp = _.extend(VXApp || {}, {
                     const elapsedMinutes = Math.floor(elapsedMs / 60000)
                     const hours = Math.floor(elapsedMinutes / 60)
                     const minutes = elapsedMinutes % 60
+
                     const timeLabel =
                         `${hours.toString().padStart(2, "0")}:` +
                         `${minutes.toString().padStart(2, "0")}`
 
-                    // --- Dynamically map all rails ---
                     const railSnapshot = {}
-                    rails.forEach(r => {
-                        if (
-                            r.label == null ||
-                            r.voltage_v == null ||
-                            r.current_ma == null ||
-                            r.power_w == null
-                        ) {
-                            return
-                        }
 
-                        const key = r.label
-                            .toLowerCase()
-                            .replace(/\s+/g, "_")
-                            .replace(/[^a-z0-9_]/g, "")
+                    // --- Flatten all buses into a single rail map ---
+                    Object.entries(power).forEach(([busKey, bus]) => {
+                        if (busKey === "health_state") return
 
-                        railSnapshot[key] = {
-                            label: r.label,
-                            voltage_v: r.voltage_v,
-                            current_ma: r.current_ma,
-                            power_w: r.power_w,
-                            ideal_voltage_v: r.ideal_voltage_v,
-                            address: r.address
-                        }
+                        Object.values(bus).forEach(r => {
+                            const key = r.label
+                                .toLowerCase()
+                                .replace(/\s+/g, "_")
+                                .replace(/[^a-z0-9_]/g, "")
+
+                            railSnapshot[key] = {
+                                label: r.label,
+                                voltage_v: r.volts,
+                                current_ma: r.amps,
+                                power_w: r.watts,
+                                ideal_voltage_v: r.ideal_voltage_v,
+                                address: r.address
+                            }
+                        })
                     })
 
                     samples.push({
@@ -344,10 +339,6 @@ VXApp = _.extend(VXApp || {}, {
 
                 i++
             })
-
-            OLog.debug(
-                `vxapp.js aggregateBatteryStatus samples.length=${samples.length}`
-            )
 
             const payload = samples.map(s => ({
                 timeLabel: s.timeLabel,
@@ -373,5 +364,4 @@ VXApp = _.extend(VXApp || {}, {
             )
         }
     }
-
 })
