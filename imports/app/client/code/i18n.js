@@ -20,17 +20,17 @@ Meteor.i18nMessages.common = _.extend(Meteor.i18nMessages.common || {}, {
         rx : "$Cut$"
     },
 
-    header_battery_status_name : {
-        en : "Battery Status",
-        rx : "$Battery Status$"
+    header_power_status_name : {
+        en : "Power Status",
+        rx : "Power Status$"
     },
 
-    header_battery_status_description : {
+    header_power_status_description : {
         en : "Real-time Status",
         rx : "$Real-time Status$"
     },
 
-    label_battery_status_mode : {
+    label_power_status_mode : {
         en : "Mode",
         rx : "$Mode$"
     },
@@ -61,9 +61,9 @@ Meteor.i18nMessages.navbar = _.extend(Meteor.i18nMessages.navbar || {}, {
         en: "Dashboard Readout",
         rx: "$Dashboard Readout$"
     },
-    battery_status : {
-        en: "Battery Status",
-        rx: "$Battery Status$"
+    power_status : {
+        en: "Power Status",
+        rx: "$Power Status$"
     },
     fork_status : {
         en: "Fork Status",

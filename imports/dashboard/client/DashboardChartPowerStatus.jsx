@@ -12,7 +12,7 @@ import {
 } from "recharts"
 import RightBody from "/imports/vx/client/RightBody"
 
-export default class DashboardChartBatteryStatus extends Component {
+export default class DashboardChartPowerStatus extends Component {
 
     static propTypes = {
         id: PropTypes.string.isRequired,
@@ -21,7 +21,7 @@ export default class DashboardChartBatteryStatus extends Component {
     }
 
     static defaultProps = {
-        id: "dashboard-chart-battery-status"
+        id: "dashboard-chart-power-status"
     }
 
     /**
@@ -53,12 +53,12 @@ export default class DashboardChartBatteryStatus extends Component {
                 h = ((h << 5) - h) + seed.charCodeAt(i)
                 h |= 0
             }
-            const idx = Math.abs(h) % DashboardChartBatteryStatus.railColors.length
-            return DashboardChartBatteryStatus.railColors[idx]
+            const idx = Math.abs(h) % DashboardChartPowerStatus.railColors.length
+            return DashboardChartPowerStatus.railColors[idx]
         }
         catch (e) {
-            const idx = indexFallback % DashboardChartBatteryStatus.railColors.length
-            return DashboardChartBatteryStatus.railColors[idx]
+            const idx = indexFallback % DashboardChartPowerStatus.railColors.length
+            return DashboardChartPowerStatus.railColors[idx]
         }
     }
 
@@ -134,7 +134,7 @@ export default class DashboardChartBatteryStatus extends Component {
         }
 
         const payload = aggregates.payload
-        const mode = (dashboardSettings && dashboardSettings.batteryStatusMode) || "VOLTAGE"
+        const mode = (dashboardSettings && dashboardSettings.powerStatusMode) || "VOLTAGE"
         const metricKey = this.metricKeyForMode(mode)
         const unit = this.unitForMode(mode)
 

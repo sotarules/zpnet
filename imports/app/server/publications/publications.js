@@ -3,12 +3,12 @@ import WebSocket from "ws"
 const readoutSubscription = { ws: null, messageHandlers: new Set()
 }
 
-Meteor.publish("battery_status", function (dashboardSettings) {
+Meteor.publish("power_status", function (dashboardSettings) {
     try {
-        return VXApp.handlePublishAggregate(dashboardSettings, VXApp.aggregateBatteryStatus, this, 20000)
+        return VXApp.handlePublishAggregate(dashboardSettings, VXApp.aggregatePowerStatus, this, 20000)
     }
     catch (error) {
-        OLog.error(`publications.js battery_status Error: ${error.message}`, this.userId)
+        OLog.error(`publications.js power_status Error: ${error.message}`, this.userId)
     }
 })
 

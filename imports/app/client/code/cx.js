@@ -2,12 +2,12 @@ CX.LOGO_PATH = CX.CLOUDFILES_IMAGE + "/" + "zpnet400x400.png"
 CX.TOP_BAR_LOGO_PATH = CX.CLOUDFILES_IMAGE + "/" + "zpneticon.png"
 
 CX.DASHBOARD_VIEWS = {
-    "battery_status": {
-        name: "common.header_battery_status_name",
-        description: "common.header_battery_status_description",
+    "power_status": {
+        name: "common.header_power_status_name",
+        description: "common.header_power_status_description",
         iconUrl: `${CX.CLOUDFILES_PREFIX}/img/system/battery.png`,
-        headerComponent: "DashboardChartBatteryStatusHeader",
-        chartComponent: "DashboardChartBatteryStatus"
+        headerComponent: "DashboardChartPowerStatusHeader",
+        chartComponent: "DashboardChartPowerStatus"
     }
 }
 

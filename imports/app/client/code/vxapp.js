@@ -45,7 +45,7 @@ VXApp = _.extend(VXApp || {}, {
     dashboardSettingsDefaults() {
         return {
             subscriptionName: null,
-            batteryStatusMode: "VOLTAGE"
+            powerStatusMode: "VOLTAGE"
         }
     },
 

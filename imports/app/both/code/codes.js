@@ -13,7 +13,7 @@ Meteor.i18nMessages.codes = _.extend(Meteor.i18nMessages.codes, {
         },
         ...Meteor.i18nMessages.codes.eventType }
     },
-    batteryStatusMode : {
+    powerStatusMode : {
         VOLTAGE : {
             en : "Voltage",
             rx : "$Voltage$"

@@ -23,9 +23,9 @@ export default class OffCanvasNav extends Component {
                         text={Util.i18n("navbar.dashboard_readout")}
                         path="/readout"/>
                     <OffCanvasNavItem iconClass="fa-battery"
-                        text={Util.i18n("navbar.battery_status")}
+                        text={Util.i18n("navbar.power_status")}
                         path="/dashboard"
-                        onClick={this.onClickBatteryStatus.bind(this)}/>
+                        onClick={this.onClickPowerStatus.bind(this)}/>
                     <OffCanvasNavItem iconClass="fa-code-fork"
                         text={Util.i18n("navbar.fork_status")}
                         path="/dashboard"
@@ -102,8 +102,8 @@ export default class OffCanvasNav extends Component {
         UX.onClickMenuItem(event)
     }
 
-    onClickBatteryStatus(event) {
-        this.onClickCommon(event, "BATTERY_STATUS", "battery_status")
+    onClickPowerStatus(event) {
+        this.onClickCommon(event, "POWER_STATUS", "power_status")
     }
 
     onClickForkStatus(event) {

@@ -238,7 +238,7 @@ VXApp = _.extend(VXApp || {}, {
     },
 
     /**
-     * Aggregate rail voltages/currents/power for real-time battery analysis.
+     * Aggregate rail voltages/currents/power for real-time power analysis.
      * Uses the most recent SWAP_BATTERY event (or Nth most recent if
      * batterySwapIndex > 0) to delimit the window of interest.
      *
@@ -254,10 +254,10 @@ VXApp = _.extend(VXApp || {}, {
      *
      * @param {object} dashboardSettings Dashboard settings object.
      */
-    aggregateBatteryStatus(dashboardSettings) {
+    aggregatePowerStatus(dashboardSettings) {
         try {
             OLog.debug(
-                "vxapp.js aggregateBatteryStatus *fire* " +
+                "vxapp.js aggregatePowerStatus *fire* " +
                 `dashboardSettings=${OLog.debugString(dashboardSettings)}`
             )
 
@@ -288,7 +288,7 @@ VXApp = _.extend(VXApp || {}, {
             const options = { sort: { timestamp: 1 } } // oldest → newest
             const cursor = ZPNetEvents.find(selector, options)
 
-            OLog.debug(`vxapp.js aggregateBatteryStatus Found ${cursor.count()} SYSTEM_STATUS events since swap at ${swapTime.toISOString()}`)
+            OLog.debug(`vxapp.js aggregatePowerStatus Found ${cursor.count()} SYSTEM_STATUS events since swap at ${swapTime.toISOString()}`)
 
             const samples = []
             let i = 0
@@ -354,13 +354,13 @@ VXApp = _.extend(VXApp || {}, {
             }
 
             Aggregates.upsert(
-                { aggregate_name: "BATTERY_STATUS" },
+                { aggregate_name: "POWER_STATUS" },
                 { $set: aggregate }
             )
         }
         catch (error) {
             OLog.error(
-                `vxapp.js aggregateBatteryStatus Error: ${error.message}`
+                `vxapp.js aggregatePowerStatus Error: ${error.message}`
             )
         }
     }

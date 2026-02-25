@@ -2,8 +2,8 @@ import React, {Component} from "react"
 import PropTypes from "prop-types"
 import RightPanel from "/imports/vx/client/RightPanel"
 import DashboardChartHeader from "./DashboardChartHeader"
-import DashboardChartBatteryStatusHeader from "./DashboardChartBatteryStatusHeader"
-import DashboardChartBatteryStatus from "./DashboardChartBatteryStatus"
+import DashboardChartPowerStatusHeader from "./DashboardChartPowerStatusHeader"
+import DashboardChartPowerStatus from "./DashboardChartPowerStatus"
 
 export default class DashboardChart extends Component {
 
@@ -18,8 +18,8 @@ export default class DashboardChart extends Component {
     }
 
     static componentRegistry = {
-        DashboardChartBatteryStatusHeader,
-        DashboardChartBatteryStatus,
+        DashboardChartPowerStatusHeader,
+        DashboardChartPowerStatus,
     }
 
     render() {
