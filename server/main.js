@@ -1,7 +1,7 @@
 import "/imports/vx/both/code/globals"
 import "/imports/vx/server/code/globals"
 //import "/imports/app/both/code/globals"
-//import "/imports/app/server/code/globals"
+import "/imports/app/server/code/globals"
 
 import "/imports/vx/both/code/cx"
 import "/imports/vx/server/code/cx"
@@ -80,3 +80,9 @@ import "/imports/vx/server/daemon/daemon"
 //import "/imports/app/server/daemon/daemon"
 
 import "/imports/vx/server/code/startup"
+import "/imports/app/server/code/startup"
+
+import "/imports/app/server/processes/process"
+import "/imports/app/server/processes/system/system"
+
+

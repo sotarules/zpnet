@@ -1,0 +1,2 @@
+this.ZPNetSystem = {}
+this.ZPNetProcess  = {}

@@ -11,6 +11,11 @@ import zlib from "zlib"
  *    • UI and static routes (/) are untouched
  *    • /api owns its request stream end-to-end (no bodyParser)
  *
+ *  ZPNet Command Endpoint:
+ *    • /zpnet/cmd accepts plain JSON POST (no gzip requirement)
+ *    • Routes commands through the ZPNet pub/sub bus
+ *    • Analogous to zpnet-cmd CLI on the Pi
+ *
  * ============================================================
  */
 
@@ -70,6 +75,41 @@ WebApp.connectHandlers.use("/api", (req, res, next) => {
 
 /*
  * ------------------------------------------------------------
+ *  JSON BODY PARSING — /zpnet scoped (plain JSON, no gzip)
+ * ------------------------------------------------------------
+ */
+WebApp.connectHandlers.use("/zpnet", (req, res, next) => {
+    if (req.method !== "POST") {
+        next()
+        return
+    }
+
+    const type = req.headers["content-type"] || ""
+    if (!type.includes("application/json")) {
+        res.writeHead(415, { "Content-Type": "application/json" })
+        res.end(JSON.stringify({ error: "Content-Type application/json required" }))
+        return
+    }
+
+    const chunks = []
+
+    req.on("data", chunk => {
+        chunks.push(chunk)
+    })
+
+    req.on("end", () => {
+        try {
+            req.body = JSON.parse(Buffer.concat(chunks).toString("utf8"))
+            next()
+        } catch (e) {
+            res.writeHead(400, { "Content-Type": "application/json" })
+            res.end(JSON.stringify({ error: "Invalid JSON body" }))
+        }
+    })
+})
+
+/*
+ * ------------------------------------------------------------
  *  IP / AUTH MONITORING (unchanged semantics)
  * ------------------------------------------------------------
  */
@@ -101,11 +141,56 @@ WebApp.connectHandlers.use((req, res, next) => {
         return
     }
 
-    OLog.warn(
-        `service.js HTTP monitor ${ip} ${req.method} ${req.url} ${OLog.warnString(req.headers)}`
-    )
     next()
 })
+
+/*
+ * ------------------------------------------------------------
+ *  ZPNet COMMAND ENDPOINT
+ *
+ *  POST /zpnet/cmd
+ *
+ *  Body:
+ *    { "machine": "PI"|"TEENSY", "subsystem": "...", "command": "...", "args": {...} }
+ *
+ *  Response:
+ *    { "success": true|false, "message": "...", "payload": {...} }
+ *
+ *  Usage from Windows:
+ *    curl -X POST http://localhost:3000/zpnet/cmd ^
+ *      -H "Content-Type: application/json" ^
+ *      -d "{\"machine\":\"PI\",\"subsystem\":\"SYSTEM\",\"command\":\"REPORT\"}"
+ *
+ * ------------------------------------------------------------
+ */
+WebApp.connectHandlers.use("/zpnet/cmd", Meteor.bindEnvironment((req, res) => {
+    if (req.method !== "POST") {
+        res.writeHead(405, { "Content-Type": "application/json" })
+        res.end(JSON.stringify({ error: "POST only" }))
+        return
+    }
+
+    const { machine, subsystem, command, args } = req.body || {}
+
+    if (!machine || !subsystem || !command) {
+        res.writeHead(400, { "Content-Type": "application/json" })
+        res.end(JSON.stringify({ error: "machine, subsystem, and command are required" }))
+        return
+    }
+
+    OLog.debug(`service.js /zpnet/cmd ${machine} ${subsystem} ${command}`)
+
+    ZPNetProcess.sendCommand(machine, subsystem, command, args || null)
+        .then(Meteor.bindEnvironment((result) => {
+            res.writeHead(200, { "Content-Type": "application/json" })
+            res.end(JSON.stringify(result, null, 2))
+        }))
+        .catch(Meteor.bindEnvironment((err) => {
+            OLog.error(`service.js /zpnet/cmd error: ${err.message}`)
+            res.writeHead(500, { "Content-Type": "application/json" })
+            res.end(JSON.stringify({ success: false, message: err.message }))
+        }))
+}))
 
 /*
  * ------------------------------------------------------------

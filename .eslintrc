@@ -141,7 +141,9 @@
     "ZPNetEvents" : true,
     "ZPNetCommands" : true,
     "Aggregates" : true,
-    "DashboardReadout" : true
+    "DashboardReadout" : true,
+    "ZPNetSystem" : true,
+    "ZPNetProcess" : true
   },
    "rules": {
 /**
