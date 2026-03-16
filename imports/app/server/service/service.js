@@ -3,44 +3,42 @@ import zlib from "zlib"
 
 /*
  * ============================================================
- *  ZPNet Server — REST Ingress (gzip-only, /api scoped)
+ *  ZPNet Server — REST Ingress
  *
- *  Policy:
- *    • All request bodies sent to /api MUST be gzip-compressed
- *    • GET requests are bodyless and bypass gzip enforcement
- *    • UI and static routes (/) are untouched
- *    • /api owns its request stream end-to-end (no bodyParser)
+ *  All ZPNet REST endpoints live under /api:
  *
- *  ZPNet Command Endpoint:
- *    • /zpnet/cmd accepts plain JSON POST (no gzip requirement)
- *    • Routes commands through the ZPNet pub/sub bus
- *    • Analogous to zpnet-cmd CLI on the Pi
+ *    POST /api/events        — event stream ingestion
+ *    POST /api/timebase      — timebase record ingestion (future)
+ *    POST /api/cmd           — command bridge (ZPNetProcess.sendCommand)
+ *    GET  /api/test          — definitive health probe
+ *    POST /api/upload_test   — network throughput (upload)
+ *    GET  /api/download_test — network throughput (download)
+ *
+ *  Body parsing policy:
+ *    • POST bodies may be gzip-compressed or plain JSON
+ *    • If Content-Encoding is "gzip", the body is decompressed
+ *    • Otherwise the body is parsed as plain JSON
+ *    • GET requests are bodyless and bypass parsing entirely
  *
  * ============================================================
  */
 
 /*
  * ------------------------------------------------------------
- *  GZIP INGEST + BODY PARSING — API ONLY
+ *  BODY PARSING — /api scoped (gzip optional)
  * ------------------------------------------------------------
  */
 WebApp.connectHandlers.use("/api", (req, res, next) => {
     const method = req.method || "GET"
-    const enc = req.headers["content-encoding"]
-    const type = req.headers["content-type"] || ""
 
-    // GET requests have no body and bypass gzip enforcement
+    // GET requests have no body — pass through
     if (method === "GET") {
         next()
         return
     }
 
-    // Enforce gzip for all API request bodies
-    if (enc !== "gzip") {
-        res.writeHead(415)
-        res.end("Content-Encoding gzip required")
-        return
-    }
+    const enc = req.headers["content-encoding"]
+    const type = req.headers["content-type"] || ""
 
     const chunks = []
 
@@ -51,59 +49,38 @@ WebApp.connectHandlers.use("/api", (req, res, next) => {
     req.on("end", () => {
         const buffer = Buffer.concat(chunks)
 
-        zlib.gunzip(buffer, (err, decoded) => {
-            if (err) {
-                res.writeHead(400)
-                res.end("Invalid gzip body")
-                return
-            }
+        if (enc === "gzip") {
+            zlib.gunzip(buffer, (err, decoded) => {
+                if (err) {
+                    res.writeHead(400)
+                    res.end("Invalid gzip body")
+                    return
+                }
 
+                try {
+                    if (type.includes("application/json")) {
+                        req.body = JSON.parse(decoded.toString("utf8"))
+                    } else {
+                        req.body = decoded
+                    }
+                    next()
+                } catch (e) {
+                    res.writeHead(400)
+                    res.end("Invalid request body")
+                }
+            })
+        } else {
             try {
                 if (type.includes("application/json")) {
-                    req.body = JSON.parse(decoded.toString("utf8"))
+                    req.body = JSON.parse(buffer.toString("utf8"))
                 } else {
-                    req.body = decoded
+                    req.body = buffer
                 }
                 next()
             } catch (e) {
                 res.writeHead(400)
                 res.end("Invalid request body")
             }
-        })
-    })
-})
-
-/*
- * ------------------------------------------------------------
- *  JSON BODY PARSING — /zpnet scoped (plain JSON, no gzip)
- * ------------------------------------------------------------
- */
-WebApp.connectHandlers.use("/zpnet", (req, res, next) => {
-    if (req.method !== "POST") {
-        next()
-        return
-    }
-
-    const type = req.headers["content-type"] || ""
-    if (!type.includes("application/json")) {
-        res.writeHead(415, { "Content-Type": "application/json" })
-        res.end(JSON.stringify({ error: "Content-Type application/json required" }))
-        return
-    }
-
-    const chunks = []
-
-    req.on("data", chunk => {
-        chunks.push(chunk)
-    })
-
-    req.on("end", () => {
-        try {
-            req.body = JSON.parse(Buffer.concat(chunks).toString("utf8"))
-            next()
-        } catch (e) {
-            res.writeHead(400, { "Content-Type": "application/json" })
-            res.end(JSON.stringify({ error: "Invalid JSON body" }))
         }
     })
 })
@@ -146,26 +123,53 @@ WebApp.connectHandlers.use((req, res, next) => {
 
 /*
  * ------------------------------------------------------------
- *  ZPNet COMMAND ENDPOINT
- *
- *  POST /zpnet/cmd
+ *  /api/events — POST event stream ingestion
+ * ------------------------------------------------------------
+ */
+WebApp.connectHandlers.use("/api/events", Meteor.bindEnvironment((req, res) => {
+    if (req.method !== "POST") {
+        res.writeHead(405, { "Content-Type": "application/json", "Connection": "close" })
+        res.end(JSON.stringify({ error: "POST only" }))
+        return
+    }
+    VXApp.handleEvents(req, res)
+}))
+
+/*
+ * ------------------------------------------------------------
+ *  /api/timebase — POST timebase record ingestion (future)
+ * ------------------------------------------------------------
+ */
+WebApp.connectHandlers.use("/api/timebase", Meteor.bindEnvironment((req, res) => {
+    if (req.method !== "POST") {
+        res.writeHead(405, { "Content-Type": "application/json", "Connection": "close" })
+        res.end(JSON.stringify({ error: "POST only" }))
+        return
+    }
+    VXApp.handleTimebase(req, res)
+}))
+
+/*
+ * ------------------------------------------------------------
+ *  /api/cmd — POST command bridge
  *
  *  Body:
- *    { "machine": "PI"|"TEENSY", "subsystem": "...", "command": "...", "args": {...} }
+ *    { "machine": "PI"|"TEENSY"|"SERVER",
+ *      "subsystem": "...", "command": "...", "args": {...} }
  *
  *  Response:
  *    { "success": true|false, "message": "...", "payload": {...} }
  *
  *  Usage from Windows:
- *    curl -X POST http://localhost:3000/zpnet/cmd ^
+ *    curl -X POST http://sota.ddns.net/api/cmd ^
  *      -H "Content-Type: application/json" ^
  *      -d "{\"machine\":\"PI\",\"subsystem\":\"SYSTEM\",\"command\":\"REPORT\"}"
  *
  * ------------------------------------------------------------
  */
-WebApp.connectHandlers.use("/zpnet/cmd", Meteor.bindEnvironment((req, res) => {
+WebApp.connectHandlers.use("/api/cmd", Meteor.bindEnvironment((req, res) => {
     if (req.method !== "POST") {
-        res.writeHead(405, { "Content-Type": "application/json" })
+        res.writeHead(405, { "Content-Type": "application/json", "Connection": "close" })
         res.end(JSON.stringify({ error: "POST only" }))
         return
     }
@@ -173,43 +177,48 @@ WebApp.connectHandlers.use("/zpnet/cmd", Meteor.bindEnvironment((req, res) => {
     const { machine, subsystem, command, args } = req.body || {}
 
     if (!machine || !subsystem || !command) {
-        res.writeHead(400, { "Content-Type": "application/json" })
+        res.writeHead(400, { "Content-Type": "application/json", "Connection": "close" })
         res.end(JSON.stringify({ error: "machine, subsystem, and command are required" }))
         return
     }
 
-    OLog.debug(`service.js /zpnet/cmd ${machine} ${subsystem} ${command}`)
+    OLog.debug(`service.js /api/cmd ${machine} ${subsystem} ${command}`)
 
     ZPNetProcess.sendCommand(machine, subsystem, command, args || null)
         .then(Meteor.bindEnvironment((result) => {
-            res.writeHead(200, { "Content-Type": "application/json" })
+            res.writeHead(200, { "Content-Type": "application/json", "Connection": "close" })
             res.end(JSON.stringify(result, null, 2))
         }))
         .catch(Meteor.bindEnvironment((err) => {
-            OLog.error(`service.js /zpnet/cmd error: ${err.message}`)
-            res.writeHead(500, { "Content-Type": "application/json" })
+            OLog.error(`service.js /api/cmd error: ${err.message}`)
+            res.writeHead(500, { "Content-Type": "application/json", "Connection": "close" })
             res.end(JSON.stringify({ success: false, message: err.message }))
         }))
 }))
 
 /*
  * ------------------------------------------------------------
- *  API ROUTES
+ *  /api/test — GET definitive health probe
  * ------------------------------------------------------------
  */
-
 WebApp.connectHandlers.use("/api/test", (req, res) => {
     VXApp.handleRESTAPITest(req, res)
 })
 
+/*
+ * ------------------------------------------------------------
+ *  /api/upload_test — POST network throughput (upload)
+ * ------------------------------------------------------------
+ */
 WebApp.connectHandlers.use("/api/upload_test", (req, res) => {
     VXApp.handleRESTAPIUploadTest(req, res)
 })
 
+/*
+ * ------------------------------------------------------------
+ *  /api/download_test — GET network throughput (download)
+ * ------------------------------------------------------------
+ */
 WebApp.connectHandlers.use("/api/download_test", (req, res) => {
     VXApp.handleRESTAPIDownloadTest(req, res)
-})
-
-WebApp.connectHandlers.use("/api", (req, res) => {
-    VXApp.handleRESTAPIRequest(req, res)
 })

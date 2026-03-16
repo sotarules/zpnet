@@ -45,7 +45,7 @@ import "/imports/vx/both/code/meta"
 import "/imports/app/both/code/meta"
 
 import "/imports/vx/server/code/methods"
-//import "/imports/app/server/code/methods"
+import "/imports/app/server/code/methods"
 
 import "/imports/vx/server/code/master"
 //import "/imports/app/server/code/master"

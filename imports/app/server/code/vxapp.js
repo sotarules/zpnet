@@ -1,30 +1,32 @@
 VXApp = _.extend(VXApp || {}, {
 
     /**
-     * Handle REST API test.
+     * Handle REST API test — definitive health probe.
+     *
+     * GET /api/test → { status: "OK" }
      */
     handleRESTAPITest(req, res) {
         try {
-            const body = { message: "ZPNet OK" }
             res.writeHead(200, {
                 "Content-Type": "application/json",
                 "Connection": "close"
             })
-            res.end(JSON.stringify(body))
+            res.end(JSON.stringify({ message: "ZPNet OK" }))
         }
         catch (error) {
             OLog.error(`vxapp.js handleRESTAPITest Error: ${error.message}`)
-            const err = { error: "Internal Server Error" }
             res.writeHead(500, {
                 "Content-Type": "application/json",
                 "Connection": "close"
             })
-            res.end(JSON.stringify(err))
+            res.end(JSON.stringify({ error: "Internal Server Error" }))
         }
     },
 
     /**
-     * Handle REST API upload test.
+     * Handle REST API upload test — network throughput (upload direction).
+     *
+     * POST /api/upload_test
      */
     handleRESTAPIUploadTest(req, res) {
         try {
@@ -38,17 +40,18 @@ VXApp = _.extend(VXApp || {}, {
         }
         catch (error) {
             OLog.error(`vxapp.js handleRESTAPIUploadTest Error: ${error.message}`)
-            const err = { error: "Internal Server Error" }
             res.writeHead(500, {
                 "Content-Type": "application/json",
                 "Connection": "close"
             })
-            res.end(JSON.stringify(err))
+            res.end(JSON.stringify({ error: "Internal Server Error" }))
         }
     },
 
     /**
-     * Handle REST API download test.
+     * Handle REST API download test — network throughput (download direction).
+     *
+     * GET /api/download_test
      */
     handleRESTAPIDownloadTest(req, res) {
         try {
@@ -65,39 +68,6 @@ VXApp = _.extend(VXApp || {}, {
         }
         catch (error) {
             OLog.error(`vxapp.js handleRESTAPIDownloadTest Error: ${error.message}`)
-            const err = { error: "Internal Server Error" }
-            res.writeHead(500, {
-                "Content-Type": "application/json",
-                "Connection": "close"
-            })
-            res.end(JSON.stringify(err))
-        }
-    },
-
-    /**
-     * Handle REST API request router.
-     */
-    handleRESTAPIRequest(req, res) {
-        try {
-            switch (req.method) {
-            case "POST":
-                this.handlePost(req, res)
-                break
-            case "GET":
-                this.handleGet(req, res)
-                break
-            default:
-                OLog.debug(`vxapp.js handleRESTAPIRequest Unsupported method: ${req.method}`)
-                res.writeHead(405, {
-                    "Content-Type": "application/json",
-                    "Connection": "close"
-                })
-                res.end(JSON.stringify({ error: "Method Not Allowed" }))
-                break
-            }
-        }
-        catch (error) {
-            OLog.error(`vxapp.js handleRESTAPIRequest Error: ${error.message}`)
             res.writeHead(500, {
                 "Content-Type": "application/json",
                 "Connection": "close"
@@ -107,13 +77,18 @@ VXApp = _.extend(VXApp || {}, {
     },
 
     /**
-     * Handle POST from ZPNet (array of events).
+     * Handle event stream ingestion from ZPNet Sensor Suite.
+     *
+     * POST /api/events
+     *
+     * Body is an array of event objects. Each event is stored
+     * raw in MongoDB for durability and long-term preservation.
      */
-    handlePost(req, res) {
-        OLog.debug(`vxapp.js handlePost Received POST with body: ${OLog.debugString(req.body)}`)
+    handleEvents(req, res) {
+        OLog.debug(`vxapp.js handleEvents Received POST with body: ${OLog.debugString(req.body)}`)
         try {
             if (!req.body) {
-                OLog.error("vxapp.js handlePost Request contains no body")
+                OLog.error("vxapp.js handleEvents Request contains no body")
                 res.writeHead(400, {
                     "Content-Type": "application/json",
                     "Connection": "close"
@@ -121,7 +96,7 @@ VXApp = _.extend(VXApp || {}, {
                 return res.end(JSON.stringify({ error: "Missing request body" }))
             }
             if (!Array.isArray(req.body)) {
-                OLog.error("vxapp.js handlePost Request body must be of type array")
+                OLog.error("vxapp.js handleEvents Request body must be of type array")
                 res.writeHead(400, {
                     "Content-Type": "application/json",
                     "Connection": "close"
@@ -146,40 +121,28 @@ VXApp = _.extend(VXApp || {}, {
             res.end(JSON.stringify({ message: "POST received" }))
         }
         catch (error) {
-            OLog.error(`vxapp.js handlePost Error: ${error.message}`)
+            OLog.error(`vxapp.js handleEvents Error: ${error.message}`)
             res.writeHead(500, {
                 "Content-Type": "application/json",
                 "Connection": "close"
             })
-            res.end(JSON.stringify({ error: "Error processing POST" }))
+            res.end(JSON.stringify({ error: "Error processing events" }))
         }
     },
 
     /**
-     * Handle GET from ZPNet (return pending commands).
+     * Handle timebase record ingestion (future).
+     *
+     * POST /api/timebase
+     *
+     * Placeholder — returns 501 until timebase ingestion is implemented.
      */
-    handleGet(req, res) {
-        try {
-            const selector = { despooled: { $exists: false } }
-            const pendingCommands = ZPNetCommands.find(selector).fetch()
-            res.writeHead(200, {
-                "Content-Type": "application/json",
-                "Connection": "close"
-            })
-            res.end(JSON.stringify(pendingCommands))
-            pendingCommands.forEach(command => {
-                const modifier = { $set: { despooled: new Date() } }
-                ZPNetCommands.update(command._id, modifier)
-            })
-        }
-        catch (error) {
-            OLog.error(`vxapp.js handleGet Error: ${error.message}`)
-            res.writeHead(500, {
-                "Content-Type": "application/json",
-                "Connection": "close"
-            })
-            res.end(JSON.stringify({ error: "Error processing GET" }))
-        }
+    handleTimebase(req, res) {
+        res.writeHead(501, {
+            "Content-Type": "application/json",
+            "Connection": "close"
+        })
+        res.end(JSON.stringify({ error: "Timebase ingestion not yet implemented" }))
     },
 
     /**

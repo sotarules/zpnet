@@ -71,12 +71,11 @@ export default class DashboardChartPowerStatusHeader extends Component {
     }
 
     handleClickSwapBattery(callback) {
-        const payload = {}
-        payload.funktion = "createEvent"
-        payload.args = {}
-        payload.args.event_name = "SWAP_BATTERY"
-        payload.args.payload = {}
-        VXApp.createCommand("EXECUTE_FUNCTION", payload)
-        callback(true)
+        Meteor.call("sendCommand", "PI", "SYSTEM", "SWAP_BATTERY", {}, (error) => {
+            if (error) {
+                OLog.error(`DashboardChartPowerStatusHeader handleClickSwapBattery error: ${error.message}`)
+            }
+            callback(!error)
+        })
     }
 }
