@@ -85,10 +85,10 @@ VXApp = _.extend(VXApp || {}, {
      * raw in MongoDB for durability and long-term preservation.
      */
     handleEvents(req, res) {
-        OLog.debug(`vxapp.js handleEvents Received POST with body: ${OLog.debugString(req.body)}`)
+        OLog.debug(`vxapp.js handleEvents received POST with body: ${OLog.debugString(req.body)}`)
         try {
             if (!req.body) {
-                OLog.error("vxapp.js handleEvents Request contains no body")
+                OLog.error("vxapp.js handleEvents request contains no body")
                 res.writeHead(400, {
                     "Content-Type": "application/json",
                     "Connection": "close"
@@ -96,7 +96,7 @@ VXApp = _.extend(VXApp || {}, {
                 return res.end(JSON.stringify({ error: "Missing request body" }))
             }
             if (!Array.isArray(req.body)) {
-                OLog.error("vxapp.js handleEvents Request body must be of type array")
+                OLog.error("vxapp.js handleEvents request body must be of type array")
                 res.writeHead(400, {
                     "Content-Type": "application/json",
                     "Connection": "close"
@@ -104,15 +104,13 @@ VXApp = _.extend(VXApp || {}, {
                 return res.end(JSON.stringify({ error: "Body must be array" }))
             }
             req.body.forEach(event => {
-                const zpnetEvent = {
+                const record = {
                     id: event.id,
                     timestamp: moment(`${event.ts}`).toDate(),
                     event_type: event.event_type,
-                    device: event.device,
-                    device_description: event.device_description,
                     payload: event.payload
                 }
-                ZPNetEvents.insert(zpnetEvent)
+                ZPNetEvents.insert(record)
             })
             res.writeHead(200, {
                 "Content-Type": "application/json",
@@ -131,18 +129,53 @@ VXApp = _.extend(VXApp || {}, {
     },
 
     /**
-     * Handle timebase record ingestion (future).
+     * Handle timebase record ingestion.
      *
      * POST /api/timebase
      *
-     * Placeholder — returns 501 until timebase ingestion is implemented.
      */
     handleTimebase(req, res) {
-        res.writeHead(501, {
-            "Content-Type": "application/json",
-            "Connection": "close"
-        })
-        res.end(JSON.stringify({ error: "Timebase ingestion not yet implemented" }))
+        OLog.debug(`vxapp.js handleTimebase received POST with body: ${OLog.debugString(req.body)}`)
+        try {
+            if (!req.body) {
+                OLog.error("vxapp.js handleTimebase request contains no body")
+                res.writeHead(400, {
+                    "Content-Type": "application/json",
+                    "Connection": "close"
+                })
+                return res.end(JSON.stringify({ error: "Missing request body" }))
+            }
+            if (!Array.isArray(req.body)) {
+                OLog.error("vxapp.js handleTimebase request body must be of type array")
+                res.writeHead(400, {
+                    "Content-Type": "application/json",
+                    "Connection": "close"
+                })
+                return res.end(JSON.stringify({ error: "Body must be array" }))
+            }
+            req.body.forEach(timebase => {
+                const record = {
+                    id: timebase.id,
+                    timestamp: moment(`${timebase.ts}`).toDate(),
+                    campaign: timebase.campaign,
+                    payload: timebase.payload
+                }
+                Timebase.insert(record)
+            })
+            res.writeHead(200, {
+                "Content-Type": "application/json",
+                "Connection": "close"
+            })
+            res.end(JSON.stringify({ message: "POST received" }))
+        }
+        catch (error) {
+            OLog.error(`vxapp.js handleTimeabse Error: ${error.message}`)
+            res.writeHead(500, {
+                "Content-Type": "application/json",
+                "Connection": "close"
+            })
+            res.end(JSON.stringify({ error: "Error processing events" }))
+        }
     },
 
     /**

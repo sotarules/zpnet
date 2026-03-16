@@ -10,6 +10,18 @@ ZPNetEvents.allow({
     },
 })
 
+Timebase.allow({
+    insert() {
+        return true
+    },
+    update() {
+        return true
+    },
+    remove() {
+        return true
+    },
+})
+
 Aggregates.allow({
     insert() {
         return true

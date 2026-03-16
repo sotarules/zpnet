@@ -139,6 +139,7 @@
     "S3" : true,
     "Holder" : true,
     "ZPNetEvents" : true,
+    "Timebase" : true,
     "Aggregates" : true,
     "DashboardReadout" : true,
     "ZPNetSystem" : true,
