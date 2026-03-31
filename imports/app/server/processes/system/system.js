@@ -47,6 +47,26 @@ function cmdHealth() {
     }
 }
 
+function deleteCampaign(args) {
+
+    if (!args.campaign) {
+        return {
+            success: false,
+            message: "BAD",
+            payload: { "error": "missing campaign" }
+        }
+    }
+
+    const selector = { }
+    selector.campaign = args.campaign
+    Timebase.remove(selector)
+    return {
+        success: true,
+        message: "OK",
+        payload: { status: "OK" }
+    }
+}
+
 // ---------------------------------------------------------------------
 // Lifecycle
 // ---------------------------------------------------------------------
@@ -77,6 +97,7 @@ ZPNetSystem = {
             commands: {
                 REPORT: cmdReport,
                 HEALTH: cmdHealth,
+                DELETE_CAMPAIGN: deleteCampaign,
             },
         })
 
