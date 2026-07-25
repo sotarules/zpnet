@@ -47,7 +47,7 @@ function cmdHealth() {
     }
 }
 
-function deleteCampaign(args) {
+function cmdDeleteCampaign(args) {
 
     if (!args.campaign) {
         return {
@@ -60,6 +60,16 @@ function deleteCampaign(args) {
     const selector = { }
     selector.campaign = args.campaign
     Timebase.remove(selector)
+    return {
+        success: true,
+        message: "OK",
+        payload: { status: "OK" }
+    }
+}
+
+function cmdTruncate() {
+
+    Timebase.rawCollection().drop()
     return {
         success: true,
         message: "OK",
@@ -97,7 +107,8 @@ ZPNetSystem = {
             commands: {
                 REPORT: cmdReport,
                 HEALTH: cmdHealth,
-                DELETE_CAMPAIGN: deleteCampaign,
+                DELETE_CAMPAIGN: cmdDeleteCampaign,
+                TRUNCATE: cmdTruncate,
             },
         })
 
