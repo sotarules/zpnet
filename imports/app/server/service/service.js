@@ -7,12 +7,12 @@ import zlib from "zlib"
  *
  *  All ZPNet REST endpoints live under /api:
  *
- *    POST /api/events        — event stream ingestion
- *    POST /api/timebase      — timebase record ingestion (future)
- *    POST /api/cmd           — command bridge (ZPNetProcess.sendCommand)
- *    GET  /api/test          — definitive health probe
- *    POST /api/upload_test   — network throughput (upload)
- *    GET  /api/download_test — network throughput (download)
+ *    POST /api/events          — event stream ingestion
+ *    POST /api/campaign_detail — timebase record ingestion (future)
+ *    POST /api/cmd             — command bridge (ZPNetProcess.sendCommand)
+ *    GET  /api/test            — definitive health probe
+ *    POST /api/upload_test     — network throughput (upload)
+ *    GET  /api/download_test   — network throughput (download)
  *
  *  Body parsing policy:
  *    • POST bodies may be gzip-compressed or plain JSON
@@ -60,24 +60,29 @@ WebApp.connectHandlers.use("/api", (req, res, next) => {
                 try {
                     if (type.includes("application/json")) {
                         req.body = JSON.parse(decoded.toString("utf8"))
-                    } else {
+                    }
+                    else {
                         req.body = decoded
                     }
                     next()
-                } catch (e) {
+                }
+                catch (e) {
                     res.writeHead(400)
                     res.end("Invalid request body")
                 }
             })
-        } else {
+        }
+        else {
             try {
                 if (type.includes("application/json")) {
                     req.body = JSON.parse(buffer.toString("utf8"))
-                } else {
+                }
+                else {
                     req.body = buffer
                 }
                 next()
-            } catch (e) {
+            }
+            catch (e) {
                 res.writeHead(400)
                 res.end("Invalid request body")
             }
@@ -137,16 +142,16 @@ WebApp.connectHandlers.use("/api/events", Meteor.bindEnvironment((req, res) => {
 
 /*
  * ------------------------------------------------------------
- *  /api/timebase — POST timebase record ingestion (future)
+ *  /api/campaign_detail — POST campaign_detail record ingestion (future)
  * ------------------------------------------------------------
  */
-WebApp.connectHandlers.use("/api/timebase", Meteor.bindEnvironment((req, res) => {
+WebApp.connectHandlers.use("/api/campaign_detail", Meteor.bindEnvironment((req, res) => {
     if (req.method !== "POST") {
         res.writeHead(405, { "Content-Type": "application/json", "Connection": "close" })
         res.end(JSON.stringify({ error: "POST only" }))
         return
     }
-    VXApp.handleTimebase(req, res)
+    VXApp.handleCampaignDetail(req, res)
 }))
 
 /*

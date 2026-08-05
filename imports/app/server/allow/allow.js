@@ -10,7 +10,7 @@ ZPNetEvents.allow({
     },
 })
 
-Timebase.allow({
+CampaignDetail.allow({
     insert() {
         return true
     },

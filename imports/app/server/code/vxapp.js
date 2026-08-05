@@ -129,16 +129,15 @@ VXApp = _.extend(VXApp || {}, {
     },
 
     /**
-     * Handle timebase record ingestion.
+     * Handle campaign record ingestion.
      *
-     * POST /api/timebase
-     *
+     * POST /api/campaign_detail
      */
-    handleTimebase(req, res) {
-        OLog.debug(`vxapp.js handleTimebase received POST with body: ${OLog.debugString(req.body)}`)
+    handleCampaignDetail(req, res) {
+        OLog.debug(`vxapp.js handleCampaignDetail received POST with body: ${OLog.debugString(req.body)}`)
         try {
             if (!req.body) {
-                OLog.error("vxapp.js handleTimebase request contains no body")
+                OLog.error("vxapp.js handleCampaignDetail request contains no body")
                 res.writeHead(400, {
                     "Content-Type": "application/json",
                     "Connection": "close"
@@ -146,21 +145,21 @@ VXApp = _.extend(VXApp || {}, {
                 return res.end(JSON.stringify({ error: "Missing request body" }))
             }
             if (!Array.isArray(req.body)) {
-                OLog.error("vxapp.js handleTimebase request body must be of type array")
+                OLog.error("vxapp.js handleCampaignDetail request body must be of type array")
                 res.writeHead(400, {
                     "Content-Type": "application/json",
                     "Connection": "close"
                 })
                 return res.end(JSON.stringify({ error: "Body must be array" }))
             }
-            req.body.forEach(timebase => {
+            req.body.forEach(campaign_detail => {
                 const record = {
-                    id: timebase.id,
-                    timestamp: moment(`${timebase.ts}`).toDate(),
-                    campaign: timebase.campaign,
-                    payload: timebase.payload
+                    id: campaign_detail.id,
+                    timestamp: moment(`${campaign_detail.ts}`).toDate(),
+                    campaign: campaign_detail.campaign,
+                    payload: campaign_detail.payload
                 }
-                Timebase.insert(record)
+                CampaignDetail.insert(record)
             })
             res.writeHead(200, {
                 "Content-Type": "application/json",

@@ -59,7 +59,7 @@ function cmdDeleteCampaign(args) {
 
     const selector = { }
     selector.campaign = args.campaign
-    Timebase.remove(selector)
+    CampaignDetail.remove(selector)
     return {
         success: true,
         message: "OK",
@@ -69,7 +69,7 @@ function cmdDeleteCampaign(args) {
 
 function cmdTruncate() {
 
-    Timebase.rawCollection().drop()
+    CampaignDetail.rawCollection().drop()
     return {
         success: true,
         message: "OK",
